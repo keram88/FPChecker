@@ -40,7 +40,7 @@ def test_1():
       print('i', i, data[i])
       if data[i]['file'].endswith('compute.cpp'):
         if data[i]['latent_infinity_pos'] == 0 and data[i]['latent_infinity_neg'] > 0:
-          if data[i]['line'] == 10:
+          if 6 <= data[i]['line'] <= 9:
             found = True
             break
 

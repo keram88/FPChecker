@@ -23,7 +23,7 @@ static execv_func_t     old_execv = NULL;
 static execvp_func_t    old_execvp = NULL;
 static execvpe_func_t   old_execvpe = NULL;
 
-static const char *nvcc_fpc = NVCC_WRAPPER;
+//static const char *nvcc_fpc = NVCC_WRAPPER;
 static const char *clang_fpc = CLANG_WRAPPER;
 static const char *clangpp_fpc = CLANGPP_WRAPPER;
 static const char *mpi_fpc = MPI_WRAPPER;
@@ -129,8 +129,8 @@ int execve(const char* filename, char* const argv[], char* const envp[]) {
     //printEnvironment(envp);
     old_execve = dlsym(RTLD_NEXT, "execve");
 
-    if (isNVCC(filename))         return old_execve(nvcc_fpc, argv, new_envp);
-    else if (isClang(filename))   return old_execve(clang_fpc, argv, new_envp);
+    //if (isNVCC(filename))         return old_execve(nvcc_fpc, argv, new_envp);
+    if (isClang(filename))   return old_execve(clang_fpc, argv, new_envp);
     else if (isClangPP(filename)) return old_execve(clangpp_fpc, argv, new_envp);
     else if (isMPI(filename))     return old_execve(mpi_fpc, argv, new_envp);
     else if (isMPIPP(filename))   return old_execve(mpipp_fpc, argv, new_envp);
@@ -163,8 +163,8 @@ int execv(const char *path, char *const argv[]) {
       remove_ld_preload();
     old_execv = dlsym(RTLD_NEXT, "execv");
 
-    if (isNVCC(path))         return old_execv(nvcc_fpc, argv);
-    else if (isClang(path))   return old_execv(clang_fpc, argv);
+    //if (isNVCC(path))         return old_execv(nvcc_fpc, argv);
+    if (isClang(path))   return old_execv(clang_fpc, argv);
     else if (isClangPP(path)) return old_execv(clangpp_fpc, argv);
     else if (isMPI(path))     return old_execv(mpi_fpc, argv);
     else if (isMPIPP(path))   return old_execv(mpipp_fpc, argv);
@@ -177,8 +177,8 @@ int execvp (const char *file, char *const argv[]) {
       remove_ld_preload();
     old_execvp = dlsym(RTLD_NEXT, "execvp");
 
-    if (isNVCC(file))         return old_execvp(nvcc_fpc, argv);
-    else if (isClang(file))   return old_execvp(clang_fpc, argv);
+    //if (isNVCC(file))         return old_execvp(nvcc_fpc, argv);
+    if (isClang(file))   return old_execvp(clang_fpc, argv);
     else if (isClangPP(file)) return old_execvp(clangpp_fpc, argv);
     else if (isMPI(file))     return old_execvp(mpi_fpc, argv);
     else if (isMPIPP(file))   return old_execvp(mpipp_fpc, argv);
@@ -191,8 +191,8 @@ int execvpe(const char *file, char *const argv[], char *const envp[]) {
     copy_env_variables(envp, &new_envp);
     old_execvpe = dlsym(RTLD_NEXT, "execvpe");
 
-    if (isNVCC(file))         return old_execvpe(nvcc_fpc, argv, new_envp);
-    else if (isClang(file))   return old_execvpe(clang_fpc, argv, new_envp);
+    //if (isNVCC(file))         return old_execvpe(nvcc_fpc, argv, new_envp);
+    if (isClang(file))   return old_execvpe(clang_fpc, argv, new_envp);
     else if (isClangPP(file)) return old_execvpe(clangpp_fpc, argv, new_envp);
     else if (isMPI(file))     return old_execvpe(mpi_fpc, argv, new_envp);
     else if (isMPIPP(file))   return old_execvpe(mpipp_fpc, argv, new_envp);

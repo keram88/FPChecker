@@ -1,110 +1,112 @@
 
-#include "Utility.h"
-#include "Instrumentation_cpu.h"
 #include "CodeMatching.h"
+#include "Instrumentation_cpu.h"
 #include "Logging.h"
-//#include "CommonTypes.h"
-//#include "ProgressBar.h"
+#include "Utility.h"
 
-#include "llvm/Pass.h"
-#include "llvm/IR/Module.h"
-#include "llvm/IR/Function.h"
+#include "llvm/CodeGen/RegAllocRegistry.h"
 #include "llvm/IR/BasicBlock.h"
+#include "llvm/IR/Constants.h"
+#include "llvm/IR/Function.h"
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Instructions.h"
-#include "llvm/IR/Constants.h"
-#include "llvm/Support/raw_ostream.h"
-#include "llvm/Support/Casting.h"
-#include "llvm/Transforms/IPO/PassManagerBuilder.h"
-#include "llvm/CodeGen/RegAllocRegistry.h"
 #include "llvm/IR/LegacyPassManager.h"
+#include "llvm/IR/Module.h"
+#include "llvm/IR/PassManager.h"
+#include "llvm/Pass.h"
+#include "llvm/Passes/PassBuilder.h"
+#include "llvm/Passes/PassPlugin.h"
+#include "llvm/Support/Casting.h"
+#include "llvm/Support/raw_ostream.h"
 
-#include <string>
-#include <iostream>
 #include <fstream>
+#include <iostream>
 #include <set>
+#include <string>
 
 using namespace llvm;
 
-namespace CPUAnalysis
-{
+namespace CPUAnalysis {
 
-class CPUKernelAnalysis : public ModulePass
-{
-public:
-  static char ID;
-
-  CPUKernelAnalysis() : ModulePass(ID) {}
-
-	virtual bool runOnModule(Module &M)
-	{
-		Module *m = &M;
-		CPUFPInstrumentation *fpInstrumentation = new CPUFPInstrumentation(m);
-    long int instrumented = 0;
+bool analyzeProgramModule(Module &M) {
+  Module *m = &M;
+  CPUFPInstrumentation *fpInstrumentation = new CPUFPInstrumentation(m);
+  long int instrumented = 0;
 
 #ifdef FPC_DEBUG
-		std::string out = "Running Module pass on: " + m->getName().str();
-		CUDAAnalysis::Logging::info(out.c_str());
+  std::string out = "Running Module pass on: " + m->getName().str();
+  CUDAAnalysis::Logging::info(out.c_str());
 #endif
 
-		for (auto f = M.begin(), e = M.end(); f != e; ++f) {
-			// Discard function declarations
-			if (f->isDeclaration())
-				continue;
+  for (auto f = M.begin(), e = M.end(); f != e; ++f) {
+    // Discard function declarations
+    if (f->isDeclaration())
+      continue;
 
-			Function *F = &(*f);
+    Function *F = &(*f);
 
-      if (CUDAAnalysis::CodeMatching::isUnwantedFunction(F))
-          continue;
+    if (CUDAAnalysis::CodeMatching::isUnwantedFunction(F))
+      continue;
 
 #ifdef FPC_DEBUG
-      std::string fname = "Instrumenting function: " + F->getName().str();
-      CUDAAnalysis::Logging::info(fname.c_str());
+    std::string fname = "Instrumenting function: " + F->getName().str();
+    CUDAAnalysis::Logging::info(fname.c_str());
 #endif
-      long int c = 0;
-      fpInstrumentation->instrumentFunction(F, &c);
-      instrumented += c;
+    long int c = 0;
+    fpInstrumentation->instrumentFunction(F, &c);
+    instrumented += c;
 
-      if (CUDAAnalysis::CodeMatching::isMainFunction(F)) {
+    if (CUDAAnalysis::CodeMatching::isMainFunction(F)) {
 #ifdef FPC_DEBUG
-        CUDAAnalysis::Logging::info("main() found");
+      CUDAAnalysis::Logging::info("main() found");
 #endif
-        fpInstrumentation->instrumentMainFunction(F);
-      }
-		}
+      fpInstrumentation->instrumentMainFunction(F);
+    }
+  }
 
-  std::string out_tmp = "Instrumented " + std::to_string(instrumented) + " @ " + m->getName().str();
+  std::string out_tmp = "Instrumented " + std::to_string(instrumented) + " @ " +
+                        m->getName().str();
   CUDAAnalysis::Logging::info(out_tmp.c_str());
 
   // This emulates a failure in the pass
   if (getenv("FPC_INJECT_FAULT") != NULL)
     exit(-1);
 
-		delete fpInstrumentation;
-		return false;
-	}
+  delete fpInstrumentation;
+  return false;
+}
 
+// LLVM pass that uses the new pass manager.
+struct CPUKernelAnalysis : public PassInfoMixin<CPUKernelAnalysis> {
+  PreservedAnalyses run(Module &M, ModuleAnalysisManager &AM) {
+    llvm::outs() << "Running ModulePass on module: " << M.getName() << "\n";
+    analyzeProgramModule(M);
+    return PreservedAnalyses::none();
+  }
+
+  static bool isRequired() { return true; }
 };
 
-char CPUKernelAnalysis::ID = 0;
+PassPluginLibraryInfo getMyModulePassPluginInfo() {
+  const auto callback = [](PassBuilder &PB) {
+    PB.registerOptimizerLastEPCallback(
+        [&](ModulePassManager &MPM, OptimizationLevel opt) {
+#ifdef FPC_DEBUG
+          std::string fname =
+              "Optimzation Level: " + std::to_string(opt.getSpeedupLevel());
+          CUDAAnalysis::Logging::info(fname.c_str());
+#endif
+          // MPM.addPass(createModuleToFunctionPassAdaptor(CPUKernelAnalysis()));
+          MPM.addPass(CPUKernelAnalysis());
+          return true;
+        });
+  };
 
-static RegisterPass<CPUKernelAnalysis> X(
-		"cpukernels",
-		"CPUKernelAnalysis Pass",
-		false,
-		false);
+  return {LLVM_PLUGIN_API_VERSION, "CPUKernelAnalysis", "0.5", callback};
+};
 
-static void registerPass(const PassManagerBuilder &, legacy::PassManagerBase &PM)
-{
-	PM.add(new CPUKernelAnalysis());
+extern "C" LLVM_ATTRIBUTE_WEAK PassPluginLibraryInfo llvmGetPassPluginInfo() {
+  return getMyModulePassPluginInfo();
 }
 
-static RegisterStandardPasses
-    RegisterMyPass(PassManagerBuilder::EP_EnabledOnOptLevel0,registerPass);
-static RegisterStandardPasses
-    RegisterMyPass2(PassManagerBuilder::EP_OptimizerLast,registerPass);
-}
-
-
-
-
+} // namespace CPUAnalysis
