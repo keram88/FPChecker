@@ -1,7 +1,7 @@
 
 OP = 	-O2
-#CXX = FPC_INSTRUMENT=1 clang++-fpchecker 
-CXX = mpicxx
+CXX = FPC_INSTRUMENT=1 mpicxx-fpchecker 
+#CXX = mpicxx
 
 all:
 	$(CXX) -c main.cpp $(OP)

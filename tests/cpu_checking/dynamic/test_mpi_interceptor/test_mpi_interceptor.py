@@ -18,7 +18,7 @@ def teardown_module(module):
 
 def test_1():
     # --- compile code ---
-    cmd = ["fpchecker make"]
+    cmd = ["make"]
     try:
         cmdOutput = subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True)
     except subprocess.CalledProcessError as e:

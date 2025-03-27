@@ -123,8 +123,8 @@ void remove_ld_preload() {
 }
 
 int execve(const char* filename, char* const argv[], char* const envp[]) {
-    printf("In  execve:  %s\n", filename);
-    fflush(stdout);
+    //printf("In  execve:  %s\n", filename);
+    //fflush(stdout);
     // Copy env variables
     char ** new_envp;
     copy_env_variables(envp, &new_envp);
@@ -148,8 +148,8 @@ int execve(const char* filename, char* const argv[], char* const envp[]) {
 }
 
 int execv(const char *path, char *const argv[]) {
-    printf("In execv: %s\n", path);
-    fflush(stdout);
+    //printf("In execv: %s\n", path);
+    //fflush(stdout);
     if (isNVCC(path) || isClang(path) || isClangPP(path) || isMPI(path) || isMPIPP(path))
       remove_ld_preload();
     old_execv = dlsym(RTLD_NEXT, "execv");
@@ -163,8 +163,8 @@ int execv(const char *path, char *const argv[]) {
 }
 
 int execvp (const char *file, char *const argv[]) {
-    printf("In execvp: %s\n", file);
-    fflush(stdout);
+    //printf("In execvp: %s\n", file);
+    //fflush(stdout);
     if (isNVCC(file) || isClang(file) || isClangPP(file) || isMPI(file) || isMPIPP(file))
       remove_ld_preload();
     old_execvp = dlsym(RTLD_NEXT, "execvp");
@@ -178,8 +178,8 @@ int execvp (const char *file, char *const argv[]) {
 }
 
 int execvpe(const char *file, char *const argv[], char *const envp[]) {
-    printf("in execvpe: %s\n", file);
-    fflush(stdout);
+    //printf("in execvpe: %s\n", file);
+    //fflush(stdout);
     char ** new_envp;
     copy_env_variables(envp, &new_envp);
     old_execvpe = dlsym(RTLD_NEXT, "execvpe");
@@ -192,8 +192,8 @@ int execvpe(const char *file, char *const argv[], char *const envp[]) {
     return old_execvpe(file, argv, envp); // else run original call
 }
 
-__attribute__((constructor)) static void setup(void) {
-  printf("In setup(): Library loaded.\n");
-}
+//__attribute__((constructor)) static void setup(void) {
+//  printf("In setup(): Library loaded.\n");
+//}
 
 
