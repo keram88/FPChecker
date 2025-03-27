@@ -15,7 +15,9 @@ def runBuildCommand(params):
   params.insert(0,'LD_PRELOAD='+INTERCEPT_LIB)  
 
   try:
-    cmdOutput = subprocess.run(' '.join(params), shell=True, check=True)
+    cmd = ' '.join(params)
+    print("Command: ", cmd)
+    cmdOutput = subprocess.run(cmd, shell=True, check=True)
   except Exception as e:
     print(e)
     raise RuntimeError('Error when running fpchecker input')

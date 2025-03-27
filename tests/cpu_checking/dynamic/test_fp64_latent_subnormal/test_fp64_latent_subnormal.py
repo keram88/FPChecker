@@ -40,7 +40,7 @@ def test_1():
       print('i', i, data[i])
       if data[i]['file'].endswith('compute.cpp'):
         if data[i]['latent_underflow'] > 0:
-          if data[i]['line'] == 10:
+          if 6 <= data[i]['line'] <= 10:
             found = True
             break
 

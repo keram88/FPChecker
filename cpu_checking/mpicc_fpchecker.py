@@ -20,7 +20,7 @@ if platform.system() == 'Darwin':
 else:
   FPCHECKER_LIB       = FPCHECKER_PATH+'/../lib/libfpchecker_cpu.so'
 FPCHECKER_RUNTIME   = FPCHECKER_PATH+'/../src/Runtime_cpu.h'
-LLVM_PASS           = "-Xclang -load -Xclang " + FPCHECKER_LIB + " -include " + FPCHECKER_RUNTIME + ' -g '
+LLVM_PASS           = "-fpass-plugin=" + FPCHECKER_LIB + " -include " + FPCHECKER_RUNTIME + ' -g '
 
 # --------------------------------------------------------------------------- #
 # --- Global variables ------------------------------------------------------ #
