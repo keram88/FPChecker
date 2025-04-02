@@ -26,24 +26,13 @@ def test_1():
     run_command(cmd)
 
     # --- run code ---
-    cmd = ["./main"]
+    cmd = ["FPC_EXPONENT_USAGE=1 ./main"]
     run_command(cmd)
 
     fileName = report.findHistogramFile('.fpc_logs')
     data = report.loadReport(fileName)
 
-    for i in range(4):
-        if data[i]['line'] == 7:
-            assert data[i]['fp32']['0'] == 1
-            assert data[i]['fp32']['128'] == 2
+    assert data[0]['fp32']['-2'] == 1
+    assert data[0]['fp32']['-3'] == 1
+    assert data[0]['fp32']['-4'] == 1
 
-        if data[i]['line'] == 10:
-            assert data[i]['fp32']['128'] == 3
-    
-        if data[i]['line'] == 29:
-            assert data[i]['fp32']['0'] == 1
-            assert data[i]['fp32']['128'] == 2
-
-        if data[i]['line'] == 32:
-            assert data[i]['fp32']['-127'] == 1
-            assert data[i]['fp32']['128'] == 5

@@ -27,7 +27,8 @@ using namespace llvm;
 /* This function configures the function found (e.g., calling conventions) and
 saves pointer if needed. We also do logging. */
 void confFunction(Function *found, Function **saveHere,
-                  GlobalValue::LinkageTypes linkage, const char *name) {
+                  GlobalValue::LinkageTypes linkage, const char *name)
+{
 #ifdef FPC_DEBUG
   std::string out = std::string("Found ") + std::string(name);
   CUDAAnalysis::Logging::info(out.c_str());
@@ -45,44 +46,52 @@ void confFunction(Function *found, Function **saveHere,
 //     f->setLinkage(GlobalValue::LinkageTypes::LinkOnceODRLinkage);
 //   }
 // }
-#define SET_ODR_LIKAGE(name)                                                   \
-  if (f->getName().str().find(name) != std::string::npos) {                    \
-    f->setLinkage(GlobalValue::LinkageTypes::LinkOnceODRLinkage);              \
+#define SET_ODR_LIKAGE(name)                                      \
+  if (f->getName().str().find(name) != std::string::npos)         \
+  {                                                               \
+    f->setLinkage(GlobalValue::LinkageTypes::LinkOnceODRLinkage); \
   }
 
 CPUFPInstrumentation::CPUFPInstrumentation(Module *M)
     : mod(M), fp32_check_function(nullptr), fp64_check_function(nullptr),
       // fpc_init_htable(nullptr),
-      fpc_init(nullptr), fpc_init_args(nullptr), fpc_print_locations(nullptr) {
+      fpc_init(nullptr), fpc_init_args(nullptr), fpc_print_locations(nullptr)
+{
 
 #ifdef FPC_DEBUG
   CUDAAnalysis::Logging::info("Initializing instrumentation");
 #endif
 
   // Find and configure instrumentation functions
-  for (auto F = M->begin(), e = M->end(); F != e; ++F) {
+  for (auto F = M->begin(), e = M->end(); F != e; ++F)
+  {
     Function *f = &(*F);
-    if (f->getName().str().find("_FPC_FP32_CHECK_") != std::string::npos) {
+    if (f->getName().str().find("_FPC_FP32_CHECK_") != std::string::npos)
+    {
       confFunction(f, &fp32_check_function,
                    GlobalValue::LinkageTypes::LinkOnceODRLinkage,
                    "_FPC_FP32_CHECK_");
     }
-    if (f->getName().str().find("_FPC_FP64_CHECK_") != std::string::npos) {
+    if (f->getName().str().find("_FPC_FP64_CHECK_") != std::string::npos)
+    {
       confFunction(f, &fp64_check_function,
                    GlobalValue::LinkageTypes::LinkOnceODRLinkage,
                    "_FPC_FP64_CHECK_");
     }
-    if (f->getName().str().find("_FPC_INIT_FPCHECKER") != std::string::npos) {
+    if (f->getName().str().find("_FPC_INIT_FPCHECKER") != std::string::npos)
+    {
       confFunction(f, &fpc_init, GlobalValue::LinkageTypes::LinkOnceODRLinkage,
                    "_FPC_INIT_FPCHECKER");
     }
     if (f->getName().str().find("_FPC_INIT_ARGS_FPCHECKER") !=
-        std::string::npos) {
+        std::string::npos)
+    {
       confFunction(f, &fpc_init_args,
                    GlobalValue::LinkageTypes::LinkOnceODRLinkage,
                    "_FPC_INIT_ARGS_FPCHECKER");
     }
-    if (f->getName().str().find("_FPC_PRINT_LOCATIONS_") != std::string::npos) {
+    if (f->getName().str().find("_FPC_PRINT_LOCATIONS_") != std::string::npos)
+    {
       confFunction(f, &fpc_print_locations,
                    GlobalValue::LinkageTypes::LinkOnceODRLinkage,
                    "_FPC_PRINT_LOCATIONS_");
@@ -131,6 +140,7 @@ CPUFPInstrumentation::CPUFPInstrumentation(Module *M)
     SET_ODR_LIKAGE("_FPC_PRINT_HASH_TABLE_")
     SET_ODR_LIKAGE("_FPC_INIT_HASH_TABLE_")
     SET_ODR_LIKAGE("_FPC_GET_EXECUTION_ID_")
+    SET_ODR_LIKAGE("_FPC_ITEM_IS_EMPTY_")
   }
 
   // Globals initialization
@@ -152,13 +162,15 @@ CPUFPInstrumentation::CPUFPInstrumentation(Module *M)
 
   GlobalVariable *fpc_lock = nullptr;
   fpc_lock = mod->getGlobalVariable("fpc_lock", true);
-  if (fpc_lock) {
+  if (fpc_lock)
+  {
     assert(fpc_lock && "Invalid lock!");
     fpc_lock->setLinkage(GlobalValue::LinkageTypes::LinkOnceODRLinkage);
   }
 }
 
-void CPUFPInstrumentation::instrumentFunction(Function *f, long int *c) {
+void CPUFPInstrumentation::instrumentFunction(Function *f, long int *c)
+{
   if (CUDAAnalysis::CodeMatching::isUnwantedFunction(f))
     return;
 
@@ -170,12 +182,15 @@ void CPUFPInstrumentation::instrumentFunction(Function *f, long int *c) {
 #endif
 
   long int instrumentedOps = 0;
-  for (auto bb = f->begin(), end = f->end(); bb != end; ++bb) {
-    for (auto i = bb->begin(), bend = bb->end(); i != bend; ++i) {
+  for (auto bb = f->begin(), end = f->end(); bb != end; ++bb)
+  {
+    for (auto i = bb->begin(), bend = bb->end(); i != bend; ++i)
+    {
       Instruction *inst = &(*i);
 
       if (isFPOperation(inst) &&
-          (isSingleFPOperation(inst) || isDoubleFPOperation(inst))) {
+          (isSingleFPOperation(inst) || isDoubleFPOperation(inst)))
+      {
         DebugLoc loc = inst->getDebugLoc();
 
         // Create builder to add stuff after the instruction
@@ -185,9 +200,12 @@ void CPUFPInstrumentation::instrumentFunction(Function *f, long int *c) {
 
         // Push parameters
         std::vector<Value *> args;
-        if (!isCmpEqual(inst)) {
+        if (!isCmpEqual(inst))
+        {
           args.push_back(inst);
-        } else {
+        }
+        else
+        {
           if (isSingleFPOperation(inst))
             args.push_back(ConstantFP::get(builder.getFloatTy(), 0.0));
           else
@@ -252,28 +270,34 @@ void CPUFPInstrumentation::instrumentFunction(Function *f, long int *c) {
         Value *cond_instr = nullptr; // condition instruction
         int inverse;                 // inverse the semantics of the condition?
         if (selectedBasedOnCondition(inst, f, &select_inst, &condition,
-                                     &inverse)) {
+                                     &inverse))
+        {
           // Set insertion point after the select instruction
           assert(select_inst && "Invalid select instruction");
           BasicBlock::iterator nextOne(select_inst);
           nextOne++;
           builder.SetInsertPoint(&(*nextOne));
           // Inverse semantics of condition if needed
-          if (inverse) {
+          if (inverse)
+          {
             // Add XOR to negate the condition
             auto neg_inst = builder.CreateXor(condition, 1, "my");
             cond_instr =
                 builder.CreateZExt(neg_inst, builder.getInt32Ty(), "my");
             assert(cond_instr && "Invalid extension instruction");
             args.push_back(cond_instr);
-          } else {
+          }
+          else
+          {
             // Add extension of condition (from i1 to i32 integer)
             cond_instr =
                 builder.CreateZExt(condition, builder.getInt32Ty(), "my");
             assert(cond_instr && "Invalid extension instruction");
             args.push_back(cond_instr);
           }
-        } else {
+        }
+        else
+        {
           ConstantInt *cond =
               ConstantInt::get(mod->getContext(), APInt(32, 1, true));
           args.push_back(cond);
@@ -282,9 +306,12 @@ void CPUFPInstrumentation::instrumentFunction(Function *f, long int *c) {
         ArrayRef<Value *> args_ref(args);
 
         CallInst *callInst = nullptr;
-        if (isSingleFPOperation(inst)) {
+        if (isSingleFPOperation(inst))
+        {
           callInst = builder.CreateCall(fp32_check_function, args_ref);
-        } else if (isDoubleFPOperation(inst)) {
+        }
+        else if (isDoubleFPOperation(inst))
+        {
           callInst = builder.CreateCall(fp64_check_function, args_ref);
         }
         instrumentedOps++;
@@ -313,13 +340,17 @@ bool CPUFPInstrumentation::selectedBasedOnCondition(Instruction *inst,
                                                     Function *f,
                                                     Instruction **select_inst,
                                                     Value **condition,
-                                                    int *inverse) {
+                                                    int *inverse)
+{
   bool ret = false;
   int numSelect = 0;
   int others = 0;
-  for (User *U : inst->users()) {
-    if (Instruction *use_inst = dyn_cast<Instruction>(U)) {
-      if (SelectInst *s_inst = dyn_cast<SelectInst>(use_inst)) {
+  for (User *U : inst->users())
+  {
+    if (Instruction *use_inst = dyn_cast<Instruction>(U))
+    {
+      if (SelectInst *s_inst = dyn_cast<SelectInst>(use_inst))
+      {
         numSelect++;
         *select_inst = s_inst;
         *condition = s_inst->getOperand(0);
@@ -327,7 +358,9 @@ bool CPUFPInstrumentation::selectedBasedOnCondition(Instruction *inst,
           *inverse = 0;
         else
           *inverse = 1;
-      } else {
+      }
+      else
+      {
         others++;
       }
     }
@@ -339,9 +372,12 @@ bool CPUFPInstrumentation::selectedBasedOnCondition(Instruction *inst,
   return ret;
 }
 
-bool CPUFPInstrumentation::isCmpEqual(const Instruction *inst) {
-  if (inst->getOpcode() == Instruction::FCmp) {
-    if (const CmpInst *cmpInst = dyn_cast<CmpInst>(inst)) {
+bool CPUFPInstrumentation::isCmpEqual(const Instruction *inst)
+{
+  if (inst->getOpcode() == Instruction::FCmp)
+  {
+    if (const CmpInst *cmpInst = dyn_cast<CmpInst>(inst))
+    {
       if (cmpInst->getPredicate() == llvm::CmpInst::Predicate::FCMP_OEQ ||
           cmpInst->getPredicate() == llvm::CmpInst::Predicate::FCMP_UEQ)
         return true;
@@ -350,7 +386,8 @@ bool CPUFPInstrumentation::isCmpEqual(const Instruction *inst) {
   return false;
 }
 
-bool CPUFPInstrumentation::isFPOperation(const Instruction *inst) {
+bool CPUFPInstrumentation::isFPOperation(const Instruction *inst)
+{
 
   return ((inst->getOpcode() == Instruction::FMul) ||
           (inst->getOpcode() == Instruction::FDiv) ||
@@ -359,14 +396,16 @@ bool CPUFPInstrumentation::isFPOperation(const Instruction *inst) {
           (inst->getOpcode() == Instruction::FRem));
 }
 
-bool CPUFPInstrumentation::isDoubleFPOperation(const Instruction *inst) {
+bool CPUFPInstrumentation::isDoubleFPOperation(const Instruction *inst)
+{
   if (!isFPOperation(inst))
     return false;
   // return inst->getType()->isDoubleTy();
   return inst->getOperand(0)->getType()->isDoubleTy();
 }
 
-bool CPUFPInstrumentation::isSingleFPOperation(const Instruction *inst) {
+bool CPUFPInstrumentation::isSingleFPOperation(const Instruction *inst)
+{
   if (!isFPOperation(inst))
     return false;
   // return inst->getType()->isFloatTy();
@@ -375,20 +414,27 @@ bool CPUFPInstrumentation::isSingleFPOperation(const Instruction *inst) {
 
 void CPUFPInstrumentation::setFakeDebugLocation(Instruction *old_inst,
                                                 Instruction *new_inst,
-                                                Function *f) {
+                                                Function *f)
+{
   auto di = old_inst->getDebugLoc();
-  if (!di) { // couldn't find debug info
-    for (auto bb = f->begin(), end = f->end(); bb != end; ++bb) {
-      for (auto i = bb->begin(), bend = bb->end(); i != bend; ++i) {
+  if (!di)
+  { // couldn't find debug info
+    for (auto bb = f->begin(), end = f->end(); bb != end; ++bb)
+    {
+      for (auto i = bb->begin(), bend = bb->end(); i != bend; ++i)
+      {
         Instruction *inst = &(*i);
         auto tmp_di = inst->getDebugLoc();
-        if (tmp_di) {
+        if (tmp_di)
+        {
           new_inst->setDebugLoc(inst->getDebugLoc());
           return;
         }
       }
     }
-  } else {
+  }
+  else
+  {
     new_inst->setDebugLoc(di);
     return;
   }
@@ -398,9 +444,11 @@ void CPUFPInstrumentation::setFakeDebugLocation(Instruction *old_inst,
 }
 
 /* Returns the return first (non-phi) instruction of the module */
-Instruction *CPUFPInstrumentation::firstInstrution() {
+Instruction *CPUFPInstrumentation::firstInstrution()
+{
   Instruction *inst = nullptr;
-  for (auto f = mod->begin(), e = mod->end(); f != e; ++f) {
+  for (auto f = mod->begin(), e = mod->end(); f != e; ++f)
+  {
     // Discard function declarations
     if (f->isDeclaration())
       continue;
@@ -415,7 +463,8 @@ Instruction *CPUFPInstrumentation::firstInstrution() {
   return inst;
 }
 
-void CPUFPInstrumentation::instrumentMainFunction(Function *f) {
+void CPUFPInstrumentation::instrumentMainFunction(Function *f)
+{
   /// ----------------- BEGIN --------------------------
   BasicBlock *bb = &(*(f->begin()));
   Instruction *inst = bb->getFirstNonPHIOrDbg();
@@ -424,24 +473,30 @@ void CPUFPInstrumentation::instrumentMainFunction(Function *f) {
 
   CallInst *callInst = nullptr;
   // Check if function has argumments or not
-  if (f->arg_size() == 2) {
+  if (f->arg_size() == 2)
+  {
     // Push parameters
-    for (auto i = f->arg_begin(); i != f->arg_end(); ++i) {
+    for (auto i = f->arg_begin(); i != f->arg_end(); ++i)
+    {
       Value *v = &(*i);
       args.push_back(v);
     }
     ArrayRef<Value *> args_ref(args);
     callInst = builder.CreateCall(fpc_init_args, args_ref);
-  } else {
+  }
+  else
+  {
     // ArrayRef<Value *> args_ref(args);
     callInst = builder.CreateCall(fpc_init, args);
   }
   assert(callInst && "Invalid call instruction!");
 
   // Set debug location
-  for (auto i = bb->begin(), bend = bb->end(); i != bend; ++i) {
+  for (auto i = bb->begin(), bend = bb->end(); i != bend; ++i)
+  {
     Instruction *inst = &(*i);
-    if (inst->getDebugLoc()) {
+    if (inst->getDebugLoc())
+    {
       callInst->setDebugLoc(inst->getDebugLoc());
       break;
     }
@@ -451,10 +506,13 @@ void CPUFPInstrumentation::instrumentMainFunction(Function *f) {
 
   /// ------------------ END ----------------------------
   /// Print table before end of function
-  for (auto bb = f->begin(), end = f->end(); bb != end; ++bb) {
-    for (auto i = bb->begin(), iend = bb->end(); i != iend; ++i) {
+  for (auto bb = f->begin(), end = f->end(); bb != end; ++bb)
+  {
+    for (auto i = bb->begin(), iend = bb->end(); i != iend; ++i)
+    {
       Instruction *inst = &(*i);
-      if (isa<ReturnInst>(inst) || isa<ResumeInst>(inst)) {
+      if (isa<ReturnInst>(inst) || isa<ResumeInst>(inst))
+      {
         std::vector<Value *> args;
         ArrayRef<Value *> args_ref(args);
         IRBuilder<> builder(inst);

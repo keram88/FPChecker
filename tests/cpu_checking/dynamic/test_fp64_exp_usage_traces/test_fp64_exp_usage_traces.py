@@ -26,13 +26,13 @@ def test_1():
     run_command(cmd)
 
     # --- run code ---
-    cmd = ["./main"]
+    cmd = ["FPC_EXPONENT_USAGE=1 ./main"]
     run_command(cmd)
 
     fileName = report.findHistogramFile('.fpc_logs')
     data = report.loadReport(fileName)
 
-    assert data[0]['fp32']['-2'] == 1
-    assert data[0]['fp32']['-3'] == 1
-    assert data[0]['fp32']['-4'] == 1
+    assert data[0]['fp64']['-2'] == 1
+    assert data[0]['fp64']['-3'] == 1
+    assert data[0]['fp64']['-4'] == 1
 

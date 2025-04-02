@@ -19,7 +19,7 @@ def numberReportFiles(path):
 
 # ------ Histogram reports -------
 def findHistogramFile(path):
-  reports = glob.glob(path+'/histogram_*.json')
+  reports = glob.glob(path+'/exponent_usage_*.json')
   return reports[0]
 
 if __name__ == '__main__':

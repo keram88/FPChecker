@@ -1,5 +1,5 @@
 
-OP = 	-O2 -DFPC_EXPONENT_USAGE
+OP = 	-O0 -g
 CXX = FPC_INSTRUMENT=1 clang++-fpchecker 
 
 all:

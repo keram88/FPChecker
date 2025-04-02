@@ -11,16 +11,13 @@ sys.path.insert(1, os.path.dirname(os.path.realpath(__file__)) + '/../../../../c
 
 import fpc_create_exp_usage_report as histogram_plotting
 
-
 def setup_module(module):
     THIS_DIR = os.path.dirname(os.path.abspath(__file__))
     os.chdir(THIS_DIR)
 
-
 def teardown_module(module):
     cmd = ["make clean"]
     cmdutput = subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True)
-
 
 def test_1():
     # --- compile code ---
@@ -32,7 +29,7 @@ def test_1():
         exit()
 
     # --- run code ---
-    cmd = ["./main"]
+    cmd = ["FPC_EXPONENT_USAGE=1 ./main"]
     try:
         cmdOutput = subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True)
     except subprocess.CalledProcessError as e:
@@ -54,7 +51,6 @@ def test_1():
             assert line_data['fp32'] == {}
             assert line_data['fp64']['-1023'] == 1
             assert line_data['fp64']['1024'] == 15
-
 
 def test_2():
     # --- compile code ---
@@ -84,7 +80,6 @@ def test_2():
             assert file_data['fp64']['-1023'] == 1
             assert file_data['fp64']['0'] == 1
             assert file_data['fp64']['1024'] == 22
-
 
 def test_3():
     # --- compile code ---

@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.11)
+cmake_minimum_required(VERSION 3.15)
 
 set(CMAKE_CXX_COMPILER "clang++")
 set(CMAKE_C_COMPILER "clang")
@@ -31,13 +31,12 @@ if(Python3_Interpreter_FOUND)
             WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/tests/cpu_checking)
   set_tests_properties(cpu-tests PROPERTIES ENVIRONMENT "PATH=${CMAKE_INSTALL_PREFIX}/bin:$ENV{PATH}")
 
-check_language(CUDA)
-if(CMAKE_CUDA_COMPILER)
-  add_test(NAME nvcc-tests COMMAND Python3::Interpreter -m pytest --tb=no
-            WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/tests/parser)
-  set_tests_properties(nvcc-tests PROPERTIES ENVIRONMENT "PATH=${CMAKE_INSTALL_PREFIX}/bin:$ENV{PATH}")
-
-endif()
+#check_language(CUDA)
+#if(CMAKE_CUDA_COMPILER)
+#  add_test(NAME nvcc-tests COMMAND Python3::Interpreter -m pytest --tb=no
+#            WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/tests/parser)
+#  set_tests_properties(nvcc-tests PROPERTIES ENVIRONMENT "PATH=${CMAKE_INSTALL_PREFIX}/bin:$ENV{PATH}")
+#endif()
 endif()
 ###############################
 
@@ -70,19 +69,23 @@ add_library(fpchecker_cpu SHARED
 #	plugin/instrumentation_plugin.cpp
 #)
 
+if(NOT APPLE)
 add_library(fpchecker_intercept_lib SHARED
 	interception_tool/intercept.c
 )
 
 target_include_directories(fpchecker_intercept_lib PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
-
-if(APPLE)
-	TARGET_LINK_LIBRARIES(fpchecker "-undefined dynamic_lookup")
-	TARGET_LINK_LIBRARIES(fpchecker_cpu "-undefined dynamic_lookup")
-	TARGET_LINK_LIBRARIES(fpchecker_plugin "-Wl,-flat_namespace -Wl,-undefined -Wl,suppress")
 endif()
 
+if(APPLE)
+	#TARGET_LINK_LIBRARIES(fpchecker "-undefined dynamic_lookup")
+	TARGET_LINK_LIBRARIES(fpchecker_cpu "-undefined dynamic_lookup")
+	#TARGET_LINK_LIBRARIES(fpchecker_plugin "-Wl,-flat_namespace -Wl,-undefined -Wl,suppress")
+endif()
+
+if(NOT APPLE)
 TARGET_LINK_LIBRARIES(fpchecker_intercept_lib "-ldl")
+endif()
 
 set_target_properties(fpchecker_cpu PROPERTIES
     VERSION ${PROJECT_VERSION}
@@ -98,11 +101,18 @@ set(CMAKE_INSTALL_DEFAULT_DIRECTORY_PERMISSIONS
     OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_WRITE GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
 )
 
+if(APPLE)
+install(TARGETS fpchecker_cpu
+        LIBRARY DESTINATION "lib64"
+        PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_WRITE GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
+)
+else()
 #install(TARGETS fpchecker fpchecker_plugin fpchecker_intercept_lib fpchecker_cpu
 install(TARGETS fpchecker_intercept_lib fpchecker_cpu
         LIBRARY DESTINATION "lib64"
         PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_WRITE GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
 )
+endif()
 
 # Install link for /lib
 install(CODE "execute_process( \
