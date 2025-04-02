@@ -332,18 +332,18 @@ void _FPC_PRINT_HASH_TABLE_(_FPC_HTABLE_T *hashtable)
         fprintf(fp, "  {\n");
         fprintf(fp, "\t\"input\": \"%s\",\n", prog_input);
         fprintf(fp, "\t\"file\": \"%s\",\n", next->file_name);
-        fprintf(fp, "\t\"line\": %lu,\n", next->line);
+        fprintf(fp, "\t\"line\": %llu,\n", next->line);
         // Set events
-        fprintf(fp, "\t\"infinity_pos\": %lu,\n", next->infinity_pos);
-        fprintf(fp, "\t\"infinity_neg\": %lu,\n", next->infinity_neg);
-        fprintf(fp, "\t\"nan\": %lu,\n", next->nan);
-        fprintf(fp, "\t\"division_zero\": %lu,\n", next->division_zero);
-        fprintf(fp, "\t\"cancellation\": %lu,\n", next->cancellation);
-        fprintf(fp, "\t\"comparison\": %lu,\n", next->comparison);
-        fprintf(fp, "\t\"underflow\": %lu,\n", next->underflow);
-        fprintf(fp, "\t\"latent_infinity_pos\": %lu,\n", next->latent_infinity_pos);
-        fprintf(fp, "\t\"latent_infinity_neg\": %lu,\n", next->latent_infinity_neg);
-        fprintf(fp, "\t\"latent_underflow\": %lu\n", next->latent_underflow);
+        fprintf(fp, "\t\"infinity_pos\": %llu,\n", next->infinity_pos);
+        fprintf(fp, "\t\"infinity_neg\": %llu,\n", next->infinity_neg);
+        fprintf(fp, "\t\"nan\": %llu,\n", next->nan);
+        fprintf(fp, "\t\"division_zero\": %llu,\n", next->division_zero);
+        fprintf(fp, "\t\"cancellation\": %llu,\n", next->cancellation);
+        fprintf(fp, "\t\"comparison\": %llu,\n", next->comparison);
+        fprintf(fp, "\t\"underflow\": %llu,\n", next->underflow);
+        fprintf(fp, "\t\"latent_infinity_pos\": %llu,\n", next->latent_infinity_pos);
+        fprintf(fp, "\t\"latent_infinity_neg\": %llu,\n", next->latent_infinity_neg);
+        fprintf(fp, "\t\"latent_underflow\": %llu\n", next->latent_underflow);
         fprintf(fp, "  },\n");
         printed++;
       }
@@ -354,7 +354,7 @@ void _FPC_PRINT_HASH_TABLE_(_FPC_HTABLE_T *hashtable)
         fprintf(fpe, "  {\n");
         fprintf(fpe, "\t\"input\": \"%s\",\n", prog_input);
         fprintf(fpe, "\t\"file\": \"%s\",\n", next->file_name);
-        fprintf(fpe, "\t\"line\": %lu,\n", next->line);
+        fprintf(fpe, "\t\"line\": %llu,\n", next->line);
 
         fprintf(fpe, "\t\"fp32\": {\n");
         int fp32_present = 0;
@@ -365,7 +365,7 @@ void _FPC_PRINT_HASH_TABLE_(_FPC_HTABLE_T *hashtable)
             if (fp32_present)
               fprintf(fpe, ",\n");
             int e = j - 127; // remove bias 2^(k-1)-1, where k is # of bits
-            fprintf(fpe, "\t\t\"%d\": %lu", e, next->fp32_exponent_count[j]);
+            fprintf(fpe, "\t\t\"%d\": %llu", e, next->fp32_exponent_count[j]);
             fp32_present = 1;
           }
         }
@@ -380,7 +380,7 @@ void _FPC_PRINT_HASH_TABLE_(_FPC_HTABLE_T *hashtable)
             if (fp64_present)
               fprintf(fpe, ",\n");
             int e = j - 1023; // remove bias 2^(k-1)-1, where k is # of bits
-            fprintf(fpe, "\t\t\"%d\": %lu", e, next->fp64_exponent_count[j]);
+            fprintf(fpe, "\t\t\"%d\": %llu", e, next->fp64_exponent_count[j]);
             fp64_present = 1;
           }
         }
