@@ -517,7 +517,7 @@ int _FPC_EVENT_OCURRED(_FPC_ITEM_T_ *item)
  * DIV = 3
  * CMP = 4 (comparison)
  * REM = 5 (reminder)
- * CALL = 6 (function call)
+ * FMA = 6 (FMA function call)
  * -------------------------
  **/
 

@@ -16,6 +16,7 @@
 #include "llvm/IR/Module.h"
 #include "llvm/Pass.h"
 #include <llvm/IR/Type.h>
+#include <llvm/IR/IntrinsicInst.h>
 
 #include <list>
 #include <string>
@@ -256,6 +257,8 @@ void CPUFPInstrumentation::instrumentFunction(Function *f, long int *c)
           operationType = 4;
         else if (inst->getOpcode() == Instruction::FRem)
           operationType = 5;
+        else if (isFMAOperation(inst))
+          operationType = 6;
         else
           operationType = -1;
         assert(operationType >= 0 && "Unknown operation");
@@ -386,14 +389,23 @@ bool CPUFPInstrumentation::isCmpEqual(const Instruction *inst)
   return false;
 }
 
+/// Returns true if the instruction is a call to the llvm.fmuladd intrinsic.
+bool CPUFPInstrumentation::isFMAOperation(const Instruction *inst)
+{
+  return isa<IntrinsicInst>(inst) &&
+         cast<IntrinsicInst>(inst)->getIntrinsicID() == Intrinsic::fmuladd;
+}
+
 bool CPUFPInstrumentation::isFPOperation(const Instruction *inst)
 {
 
   return ((inst->getOpcode() == Instruction::FMul) ||
           (inst->getOpcode() == Instruction::FDiv) ||
           (inst->getOpcode() == Instruction::FAdd) ||
-          (inst->getOpcode() == Instruction::FSub) || isCmpEqual(inst) ||
-          (inst->getOpcode() == Instruction::FRem));
+          (inst->getOpcode() == Instruction::FSub) ||
+          (inst->getOpcode() == Instruction::FRem)) ||
+         isCmpEqual(inst) ||
+         isFMAOperation(inst);
 }
 
 bool CPUFPInstrumentation::isDoubleFPOperation(const Instruction *inst)
