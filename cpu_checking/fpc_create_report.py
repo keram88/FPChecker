@@ -35,6 +35,8 @@ P_LINES_AFFECTED = '<!-- LINES_AFFECTED -->'
 P_REPORT_TITLE = '<!-- REPORT_TITLE -->'
 P_FP64_HISTOGRAM = '<!-- FP64_HISTOGRAM -->'
 P_FP32_HISTOGRAM = '<!-- FP32_HISTOGRAM -->'
+P_FP32_INSTRUCTIONS = '<!-- FP32_INSTRUCTIONS -->'
+P_FP64_INSTRUCTIONS = '<!-- FP64_INSTRUCTIONS -->'
 
 # -------------------------------------------------------- #
 # PATHS
@@ -149,6 +151,9 @@ def getCodePaths():
   for e in events:
     for f in events[e]:
       files.add(f)
+  if len(files) == 0:
+    return "Not found"
+
   return os.path.commonpath(list(files))
 
 def getFilesAffected():
@@ -224,10 +229,10 @@ def plot_exp_usage_bars(data_dict, group_size, filename):
         middle_index = len(group_keys) // 2
         grouped_data_points.append(group_keys[middle_index])
         grouped_counts.append(sum(group_values))
-    
+
     plt.figure(figsize=(10, 3))
-    plt.bar(grouped_data_points, grouped_counts, width=7, edgecolor = 'black')
-    plt.xlabel(r'Exponent $x$ ($1.23 \times 10^x$)', fontsize=14)
+    plt.bar(grouped_data_points, grouped_counts, width=1, edgecolor = 'black')
+    plt.xlabel(r'Exponent: $10^x$', fontsize=14)
     plt.ylabel("%", fontsize=14)
     #plt.title(title)
     
@@ -411,6 +416,12 @@ def createRootReport():
         fd.write('<img src="'+fp32_plot_filename+'"\n')
       else:
         fd.write('<img src="default_fp32_plot.svg"\n')
+    
+    elif P_FP64_INSTRUCTIONS in templateLines[i]:
+      fd.write(str(sum(fp64_exp_usage_per_file.values()))+'\n')
+
+    elif P_FP32_INSTRUCTIONS in templateLines[i]:
+      fd.write(str(sum(fp32_exp_usage_per_file.values()))+'\n')
 
     else:
         fd.write(templateLines[i])
