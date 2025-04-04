@@ -20,12 +20,11 @@
 <div class="separation_class"></div>
 <div class="hierarchy_class"><a href="#">Main Report</a></div>
 <h2 id="heading">Main Report</h2>
-	
 
 <table width="150" border="0" class="report_box">
   <tbody>
 	<tr class="tr_class">
-	<th></th> <th> </th> <th class="th_class"> Events</th> <th class="th_class"> Severity</th>
+	<th></th> <th> </th> <th class="th_class"> Events</th>
 	</tr>
     <tr class="tr_class">
       <td class="icon_class"><img src="icons_3/infinity_pos.svg" alt="" width="50"/></td>
@@ -36,7 +35,6 @@
       <td>
 		  <!-- INFINITY_POS --><a href="./infinity_pos/infinity_pos.html">2</a>
 	  </td>
-	  <td><img src="icons_3/high_icon.svg" alt="" width="50"/></td>
     </tr>
     <tr class="tr_class">
       <td class="icon_class"><img src="icons_3/infinity_neg.svg" alt="" width="50"/></td>
@@ -46,7 +44,6 @@
       <td>
 		  <!-- INFINITY_NEG --><a href="#">0</a>
 	  </td>
-	  <td><img src="icons_3/high_icon.svg" alt="" width="50"/></td>
     </tr>
     <tr class="tr_class">
       <td class="icon_class"><img src="icons_3/nan.svg" alt="" width="50"/></td>
@@ -56,7 +53,6 @@
        <td>
 		   <!-- NAN --><a href="#">1</a>
 	   </td>
-	   <td><img src="icons_3/high_icon.svg" alt="" width="50"/></td>
     </tr>
     <tr class="tr_class">
       <td class="icon_class"><img src="icons_3/div_zero.svg" alt="" width="50"/></td>
@@ -66,7 +62,6 @@
       <td>
 		  <!-- DIV_ZERO --><a href="#">1</a>
 	  </td>
-	  <td><img src="icons_3/high_icon.svg" alt="" width="50"/></td>
     </tr>
 	<tr class="tr_class">
       <td class="icon_class"><img src="icons_3/underflow.svg" alt="" width="50"/></td>
@@ -78,7 +73,6 @@
       <td>
 		  <!-- UNDERFLOW --><a href="#">567</a>
 	  </td>
-	  <td><img src="icons_3/medium_icon.svg" alt="" width="75"/></td>
     </tr>
     <tr class="tr_class">
       <td class="icon_class"><img src="icons_3/comparison.svg" alt="" width="50"/></td>
@@ -89,7 +83,6 @@
       <td>
 		  <!-- COMPARISON --><a href="#">10</a>
 	  </td>
-	  <td><img src="icons_3/medium_icon.svg" alt="" width="75"/></td>
     </tr>
 	<tr class="tr_class">
       <td class="icon_class"><img src="icons_3/cancellation.svg" alt="" width="50"/></td>
@@ -100,7 +93,6 @@
       <td>
 		  <!-- CANCELLATION --><a href="#">335</a>
 	  </td>
-	  <td><img src="icons_3/low_icon.svg" alt="" width="45"/></td>
     </tr>
     <tr class="tr_class">
       <td class="icon_class"><img src="icons_3/warning.svg" alt="" width="50"/></td>
@@ -111,7 +103,6 @@
       <td>
 		  <!-- LATENT_INFINITY_POS --><a href="#">3378</a>
 	  </td>
-	  <td><img src="icons_3/low_icon.svg" alt="" width="45"/></td>
     </tr>
     <tr class="tr_class">
       <td class="icon_class"><img src="icons_3/warning.svg" alt="" width="50"/></td>
@@ -122,7 +113,6 @@
       <td>
 		  <!-- LATENT_INFINITY_NEG --><a href="#">0</a>
 	  </td>
-	  <td><img src="icons_3/low_icon.svg" alt="" width="45"/></td>
     </tr>
     <tr class="tr_class">
       <td class="icon_class"><img src="icons_3/warning.svg" alt="" width="50"/></td>
@@ -133,7 +123,6 @@
       <td>
 		  <!-- LATENT_UNDERFLOW --><a href="#">2456</a>
 	  </td>
-	  <td><img src="icons_3/low_icon.svg" alt="" width="45"/></td>
     </tr>
   </tbody>
 </table>
@@ -163,7 +152,56 @@
     </tr>
   </tbody>
 </table>
+	
+<div class="separation_class"></div>
+<div class="separation_class"></div>
+<h2 id="heading">Exponent Usage Report</h2>
+	
+<div class="separation_class"></div>
+<h3 id="heading">FP64 Distribution</h3>
+<div class="plot-container">
+  <!-- FP64_HISTOGRAM --><img src="default_fp64_plot.svg" 
+	   alt="Histogram" class="histogram-svg">
+</div>
+	
+<div class="separation_class"></div>
+<h3 id="heading">FP32 Distribution</h3>
+<div class="plot-container">
+  <!-- FP32_HISTOGRAM --><img src="default_fp32_plot.svg" 
+	   alt="Histogram" class="histogram-svg">
+</div>
+	
+<div class="separation_class"></div>
+<div class="separation_class"></div>
+	
+<h4 id="heading">Instrumented Instructions</h4>
+<table width="200" border="0" class="report_box_stats_short">
+  <tbody>
+    <tr>
+      <td class="td_class_short">FP32:</td>
+      <td class="td_class">
+		  <!-- FP32_INSTRUCTIONS -->0
+	  </td>
+    </tr>
+    <tr>
+      <td class="td_class_short">FP64:</td>
+      <td class="td_class">
+		  <!-- FP32_INSTRUCTIONS -->0
+	  </td>
+    </tr>
+  </tbody>
+</table>
 
+<div class="separation_class"></div>
+<div class="separation_class"></div>
+<div class="separation_class"></div>
+<div class="separation_class"></div>	
+<div class="auspices">
+<img src="llnl_logo.png" class="llnl_logo">
+This work was produced under the auspices of the U.S. Department of
+Energy by Lawrence Livermore National Laboratory under Contract
+DE-AC52-07NA27344.
+</div>
 	
 </body>
 </html>

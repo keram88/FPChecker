@@ -12,6 +12,9 @@ from collections import defaultdict
 import shutil 
 from line_highlighting import createHTMLCode
 from colors import prGreen, prCyan, prRed
+import matplotlib.pyplot as plt
+import matplotlib.ticker as mticker
+import math
 
 # -------------------------------------------------------- #
 # Insertion points
@@ -29,7 +32,9 @@ P_LATENT_UNDERFLOW = '<!-- LATENT_UNDERFLOW -->'
 P_CODE_PATHS = '<!-- CODE_PATHS -->'
 P_FILES_AFFECTED = '<!-- FILES_AFFECTED -->'
 P_LINES_AFFECTED = '<!-- LINES_AFFECTED -->'
-P_REPORT_TITLE = '<!-- REPORT_TITLE -->' 
+P_REPORT_TITLE = '<!-- REPORT_TITLE -->'
+P_FP64_HISTOGRAM = '<!-- FP64_HISTOGRAM -->'
+P_FP32_HISTOGRAM = '<!-- FP32_HISTOGRAM -->'
 
 # -------------------------------------------------------- #
 # PATHS
@@ -50,6 +55,12 @@ SOURCE_REPORT_TEMPLATE = ROOT_REPORT_TEMPLATE_DIR+'/source_report_template.html'
 report_title = ""
 events = defaultdict(lambda: defaultdict(list) )
 program_inputs = defaultdict(set)
+fp64_bin_values = {}
+fp32_bin_values = {}
+fp64_plot_filename = 'histogram_fp64.svg'
+fp32_plot_filename = 'histogram_fp32.svg'
+fp64_exp_usage_per_file = defaultdict(int)
+fp32_exp_usage_per_file = defaultdict(int)
 
 def getEventFilePaths(p):
   fileList = []
@@ -57,6 +68,16 @@ def getEventFilePaths(p):
     for file in files:
       fileName = os.path.split(file)[1]
       if fileName.startswith('fpc_') and fileName.endswith(".json"):
+        f = str(os.path.join(root, file))
+        fileList.append(f)
+  return fileList
+
+def getExponentUsageFilePaths(p):
+  fileList = []
+  for root, dirs, files in os.walk(p):
+    for file in files:
+      fileName = os.path.split(file)[1]
+      if fileName.startswith('exponent_usage_') and fileName.endswith(".json"):
         f = str(os.path.join(root, file))
         fileList.append(f)
   return fileList
@@ -145,6 +166,91 @@ def getLinesAffected():
         lines.add((f, t[0]))
   return len(lines)
 
+# Approximate ranges for FP precision:
+# FP64: 10^-324, 10^+308
+# FP32: 10^-45, 10^+38
+def loadExponentUsageTraces(files):
+    fp64_min_exp = -330
+    fp64_max_exp = 310
+    fp32_min_exp = -50
+    fp32_max_exp = 40
+
+    for key in range(fp64_min_exp, fp64_max_exp + 1):
+        fp64_bin_values[key] = 0
+    for key in range(fp32_min_exp, fp32_max_exp + 1):
+        fp32_bin_values[key] = 0
+    
+    for f in files:
+        data = loadReport(f)
+        for i in range(len(data)):
+            file_name       = data[i]['file']
+            fp32            = data[i]['fp32']
+            fp64            = data[i]['fp64']
+
+            for k in fp32:
+                value = fp32[k]
+                exponent_base2 = int(k)
+                exp_base10 = math.floor(math.log10(2)*exponent_base2)
+                fp32_bin_values[exp_base10] += value
+                fp32_exp_usage_per_file[file_name] += value
+            for k in fp64:
+                value = fp64[k]
+                exponent_base2 = int(k)
+                exp_base10 = math.floor(math.log10(2)*exponent_base2)
+                fp64_bin_values[exp_base10] += value
+                fp64_exp_usage_per_file[file_name] += value
+
+def plot_exp_usage_bars(data_dict, group_size, filename):
+    data_points = list(data_dict.keys())
+    counts = list(data_dict.values())
+
+    # Convert to percentages
+    total_sum = sum(counts)
+    if total_sum == 0:
+        percentages = [0.0] * len(counts) #Avoid division by zero
+    else:
+        percentages = [(quantity / total_sum) * 100 for quantity in counts]
+
+    if group_size <= 0:
+        raise ValueError("group_size must be a positive integer.")
+
+    grouped_data_points = []
+    grouped_counts = []
+
+    for i in range(0, len(data_points), group_size):
+        group_keys = data_points[i:i + group_size]
+        group_values = percentages[i:i + group_size]
+
+        middle_index = len(group_keys) // 2
+        grouped_data_points.append(group_keys[middle_index])
+        grouped_counts.append(sum(group_values))
+    
+    plt.figure(figsize=(10, 3))
+    plt.bar(grouped_data_points, grouped_counts, width=7, edgecolor = 'black')
+    plt.xlabel(r'Exponent $x$ ($1.23 \times 10^x$)', fontsize=14)
+    plt.ylabel("%", fontsize=14)
+    #plt.title(title)
+    
+    # Draw Limit lines
+    if 300 in data_dict.keys(): # print if it's the fp64 data
+        plt.axvline(x=308, color='red', linestyle='--')
+        plt.axvline(x=-324, color='red', linestyle='--')
+    plt.axvline(x=38, color='gray', linestyle='--')
+    plt.axvline(x=-45, color='gray', linestyle='--')
+
+    # Layout & format
+    plt.xticks(rotation=45, ha="right") # rotate x axis labels for better readability
+    plt.tick_params(axis='x', labelsize=12)  # Change font size for x-axis ticks
+    plt.tick_params(axis='y', labelsize=12)  # Change font size for y-axis ticks
+    plt.tight_layout() # to prevent labels from being cut off.
+    def one_decimal(x, pos): # Format the y-axis to show one decimal place
+        return f'{x:.1f}'
+    formatter = mticker.FuncFormatter(one_decimal)
+    plt.gca().yaxis.set_major_formatter(formatter)
+    plt.grid(True)
+    plt.savefig(filename, format='svg')
+    #plt.show()
+
 #------------------------------------------------------------------------------
 #------------------------- Text Reports ---------------------------------------
 #------------------------------------------------------------------------------
@@ -197,6 +303,17 @@ def createRootReport():
   shutil.copy2(ROOT_REPORT_TEMPLATE_DIR+'/sitestyle.css', REPORTS_DIR+'/sitestyle.css')
   if not os.path.exists(REPORTS_DIR+'/icons_3'):
     shutil.copytree(ROOT_REPORT_TEMPLATE_DIR+'/icons_3', REPORTS_DIR+'/icons_3')
+
+  # Create exponent usage plots (if needed)
+  if len(set(fp64_bin_values.values())) > 1:
+    plot_exp_usage_bars(fp64_bin_values, 5, REPORTS_DIR+'/'+fp64_plot_filename)
+  if len(set(fp32_bin_values.values())) > 1:
+    plot_exp_usage_bars(fp32_bin_values, 5, REPORTS_DIR+'/'+fp32_plot_filename)
+  
+  # Copy default plots
+  shutil.copy2(ROOT_REPORT_TEMPLATE_DIR+'/default_fp64_plot.svg', REPORTS_DIR+'/default_fp64_plot.svg')
+  shutil.copy2(ROOT_REPORT_TEMPLATE_DIR+'/default_fp32_plot.svg', REPORTS_DIR+'/default_fp32_plot.svg')
+  shutil.copy2(ROOT_REPORT_TEMPLATE_DIR+'/llnl_logo.png', REPORTS_DIR+'/llnl_logo.png')
 
   report_full_name = REPORTS_DIR+'/'+ROOT_REPORT_NAME 
   fd = open(report_full_name, 'w')
@@ -282,7 +399,19 @@ def createRootReport():
     
     elif P_REPORT_TITLE in templateLines[i]:
       fd.write(report_title+'\n')
-     
+
+    # Exponent usage plots
+    elif P_FP64_HISTOGRAM in templateLines[i]:
+      if os.path.exists(REPORTS_DIR+'/'+fp64_plot_filename):
+        fd.write('<img src="'+fp64_plot_filename+'"\n')
+      else:
+        fd.write('<img src="default_fp64_plot.svg"\n')
+    elif P_FP32_HISTOGRAM in templateLines[i]:
+      if os.path.exists(REPORTS_DIR+'/'+fp32_plot_filename):
+        fd.write('<img src="'+fp32_plot_filename+'"\n')
+      else:
+        fd.write('<img src="default_fp32_plot.svg"\n')
+
     else:
         fd.write(templateLines[i])
 
@@ -467,6 +596,9 @@ if __name__ == '__main__':
   reports_path = args.dir  
   prCyan('Generating FPChecker report...')
   fileList = getEventFilePaths(reports_path)
+  fileListExpUsage = getExponentUsageFilePaths(reports_path)
   print('Trace files found:', len(fileList))
+  print('Exponent usage files found:', len(fileListExpUsage))
   loadEvents(fileList)
+  loadExponentUsageTraces(fileListExpUsage)
   createRootReport()
