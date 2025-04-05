@@ -231,7 +231,7 @@ def plot_exp_usage_bars(data_dict, group_size, filename):
         grouped_counts.append(sum(group_values))
 
     plt.figure(figsize=(10, 3))
-    plt.bar(grouped_data_points, grouped_counts, width=1, edgecolor = 'black')
+    plt.bar(grouped_data_points, grouped_counts, width=3, edgecolor = 'gray')
     plt.xlabel(r'Exponent: $10^x$', fontsize=14)
     plt.ylabel("%", fontsize=14)
     #plt.title(title)

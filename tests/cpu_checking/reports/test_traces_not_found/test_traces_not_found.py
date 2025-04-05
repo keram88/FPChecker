@@ -18,27 +18,6 @@ def teardown_module(module):
     cmdOutput = subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True)
 
 def test_1():
-    # --- compile code ---
-    cmd = ["make"]
-    try:
-        cmdOutput = subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True)
-    except subprocess.CalledProcessError as e:
-        print(e.output)
-        exit()
-
-    # --- run code ---
-    cmd = ["FPC_EXPONENT_USAGE=1 ./main"]
-    try:
-        cmdOutput = subprocess.check_output(cmd, stderr=subprocess.STDOUT, shell=True)
-    except subprocess.CalledProcessError as e:
-        print(e.output)
-        exit()
-
-    found = False
-    fileName = None
-    fileName = report.findReportFile('.fpc_logs')
-    assert fileName, "Traces found"
-
     # --- Create report ----
     cmd = ["fpc-create-report"]
     try:
@@ -46,6 +25,9 @@ def test_1():
     except subprocess.CalledProcessError as e:
         print(e.output)
         exit()
+
+    assert "Trace files found: 0" in str(cmdOutput)
+    assert "Exponent usage files found: 0" in str(cmdOutput)
 
     report.checkReportWasCreated("./fpc-report")
 
@@ -55,7 +37,7 @@ def test_1():
         for line in fd:
             if '<img src="default_fp64_plot.svg"' in line:
                 Found_1 = True
-            if '<img src="histogram_fp32.svg"' in line:
+            if '<img src="default_fp64_plot.svg"' in line:
                 Found_2 = True
     
     assert Found_1
@@ -63,14 +45,18 @@ def test_1():
 
     # Check instrumented instructions are correct
     Found_3 = False
+    Found_4 = False
     with open("./fpc-report/index.html", 'r') as fd:
         lines = fd.readlines()
         text = " ".join(lines)
         normalized_text = re.sub(r'\s+', ' ', text).strip()
-        if '<td class="td_class_short">FP32:</td> <td class="td_class"> 20 </td>' in normalized_text:
+        if '<td class="td_class_short">FP32:</td> <td class="td_class"> 0 </td>' in normalized_text:
             Found_3 = True
+        if '<td class="td_class_short">FP64:</td> <td class="td_class"> 0 </td>' in normalized_text:
+            Found_4 = True
     
     assert Found_3
+    assert Found_4
 
     
 

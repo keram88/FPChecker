@@ -2,7 +2,6 @@
 
 import subprocess
 import os
-import sys
 import re
 #sys.path.append('..')
 #sys.path.append('.')
@@ -60,6 +59,17 @@ def test_1():
     
     assert Found_1
     assert Found_2
+
+    # Check instrumented instructions are correct
+    Found_3 = False
+    with open("./fpc-report/index.html", 'r') as fd:
+        lines = fd.readlines()
+        text = " ".join(lines)
+        normalized_text = re.sub(r'\s+', ' ', text).strip()
+        if '<td class="td_class_short">FP64:</td> <td class="td_class"> 20 </td>' in normalized_text:
+            Found_3 = True
+    
+    assert Found_3
 
     
 
