@@ -8,7 +8,7 @@
 </head>
 <body class="body_class">
 <header>
-<div class="header_class">&nbsp;&nbsp;<img src="icons_3/logo_fpchecker.png" alt=""/></div>
+<div class="header_class">&nbsp;&nbsp;<img src="icons_4/logo_fpchecker.png" alt=""/></div>
 </header>
 
 <div class="separation_class"></div>
@@ -20,74 +20,83 @@
 <div class="separation_class"></div>
 <div class="hierarchy_class"><a href="#">Main Report</a></div>
 <h2 id="heading">Main Report</h2>
-
-<table width="150" border="0" class="report_box">
-  <tbody>
+	
+<table width="150" border="0" class="report_box_top">
+<tbody>
 	<tr class="tr_class">
 	<th></th> <th> </th> <th class="th_class"> Events</th>
 	</tr>
-    <tr class="tr_class">
-      <td class="icon_class"><img src="icons_3/infinity_pos.svg" alt="" width="50"/></td>
-      <td><div class="tooltip">Infinity (+)
-  		<span class="tooltiptext">This is detected when operations produce positive infinity, such as 1.0 / 0.0. 
+	<tr class="tr_class">
+      <td class="icon_class"><img src="icons_4/infinity.svg" alt="" width="50"/></td>
+      <td class="td_text"><div class="tooltip">Infinity (+)
+  		<span class="tooltiptext">Detected when operations produce positive infinity, such as 1.0 / 0.0. 
 			Infinities propagate through calculations: for example, 2 + ∞ = ∞.</span></div>
 	  </td>
       <td>
 		  <!-- INFINITY_POS --><a href="./infinity_pos/infinity_pos.html">2</a>
 	  </td>
     </tr>
-    <tr class="tr_class">
-      <td class="icon_class"><img src="icons_3/infinity_neg.svg" alt="" width="50"/></td>
-      <td><div class="tooltip">Infinity (-)
-		  <span class="tooltiptext">This is detected when operations produce negative infinity.</span></div>
+	 <tr class="tr_class">
+      <td class="icon_class"><img src="icons_4/infinity.svg" alt="" width="50"/></td>
+      <td class="td_text"><div class="tooltip">Infinity (-)
+		  <span class="tooltiptext">Detected when operations produce negative infinity.</span></div>
 		</td>
       <td>
 		  <!-- INFINITY_NEG --><a href="#">0</a>
 	  </td>
     </tr>
-    <tr class="tr_class">
-      <td class="icon_class"><img src="icons_3/nan.svg" alt="" width="50"/></td>
-      <td><div class="tooltip">NaN
+	<tr class="tr_class">
+      <td class="icon_class"><img src="icons_4/nan.svg" alt="" width="50"/></td>
+      <td class="td_text"><div class="tooltip">NaN
 		  <span class="tooltiptext">NaN (not a number) are the result of invalid operations, such as 0/0 or sqrt(-1).</span></div>
 	   </td>
        <td>
 		   <!-- NAN --><a href="#">1</a>
 	   </td>
-    </tr>
+    </tr>	  
+</tbody>
+</table>
+	
+<div class="separation_class"></div>
+<div class="separation_class"></div>
+		
+<table width="150" border="0" class="report_box">
+  <tbody>
+
+	
     <tr class="tr_class">
-      <td class="icon_class"><img src="icons_3/div_zero.svg" alt="" width="50"/></td>
-      <td><div class="tooltip">Division by zero
-		  <span class="tooltiptext">This occurs when a finite nonzero number is divided by zero. This typically produce an infinity.</span></div>
+      <td class="icon_class"><img src="icons_4/div_zero.svg" alt="" width="50"/></td>
+      <td class="td_text"><div class="tooltip">Division by zero
+		  <span class="tooltiptext">Occurs when a finite nonzero number is divided by zero; typically produces infinity.</span></div>
 	  </td>
       <td>
 		  <!-- DIV_ZERO --><a href="#">1</a>
 	  </td>
     </tr>
 	<tr class="tr_class">
-      <td class="icon_class"><img src="icons_3/underflow.svg" alt="" width="50"/></td>
-      <td><div class="tooltip">Underflow (subnormal)
-		  <span class="tooltiptext">Underflows are detected when an operation produces a subnormal number 
-			  because the result was not representable as a normal number. Certain compiler optimizations 
-			  can produce unexpected results when operands are subnormal numbers.</span></div>
+      <td class="icon_class"><img src="icons_4/underflow.svg" alt="" width="50"/></td>
+      <td class="td_text"><div class="tooltip">Underflow (subnormal)
+		  <span class="tooltiptext">Detected when an operation produces a subnormal number 
+			  because the result was not representable as a normal number.</span></div>
 	  </td>
       <td>
 		  <!-- UNDERFLOW --><a href="#">567</a>
 	  </td>
     </tr>
     <tr class="tr_class">
-      <td class="icon_class"><img src="icons_3/comparison.svg" alt="" width="50"/></td>
-      <td><div class="tooltip">Comparison
-		  <span class="tooltiptext">This occurs when two floating-point numbers are compared for equality. 
-			  Often comparing if two floating-point numbers are equal is not a good idea.</span></div>
+      <td class="icon_class"><img src="icons_4/comparison.svg" alt="" width="50"/></td>
+      <td class="td_text"><div class="tooltip">Comparison
+		  <span class="tooltiptext">Occurs when two floating-point numbers are compared for equality. 
+			  Often comparing if two floating-point numbers are equal is not good practice.</span></div>
 	  </td>
       <td>
 		  <!-- COMPARISON --><a href="#">10</a>
 	  </td>
     </tr>
 	<tr class="tr_class">
-      <td class="icon_class"><img src="icons_3/cancellation.svg" alt="" width="50"/></td>
-      <td><div class="tooltip">Cancellation
-		  <span class="tooltiptext">Cancellation occurs when two nearly equal numbers are subtracted. 
+      <td class="icon_class"><img src="icons_4/cancellation.svg" alt="" width="50"/></td>
+      <td class="td_text"><div class="tooltip">Cancellation
+		  <span class="tooltiptext">Occurs when two nearly equal numbers are subtracted. 
 			  By default, this event is detected when at least ten decimal digits are lost due to a subtraction.</span></div>
 	  </td>
       <td>
@@ -95,9 +104,9 @@
 	  </td>
     </tr>
     <tr class="tr_class">
-      <td class="icon_class"><img src="icons_3/warning.svg" alt="" width="50"/></td>
-      <td><div class="tooltip">Latent Infinity (+)
-		  <span class="tooltiptext">This is detected when an operation produces a normal number that is large, 
+      <td class="icon_class"><img src="icons_4/warning.svg" alt="" width="50"/></td>
+      <td class="td_text"><div class="tooltip">Latent Infinity (+)
+		  <span class="tooltiptext">Detected when an operation produces a normal number that is large, 
 			  and it is in close proximity to positive infinity.</span></div>
 	  </td>
       <td>
@@ -105,9 +114,9 @@
 	  </td>
     </tr>
     <tr class="tr_class">
-      <td class="icon_class"><img src="icons_3/warning.svg" alt="" width="50"/></td>
-      <td><div class="tooltip">Latent Infinity (-)
-		  <span class="tooltiptext">This is detected when an operation produces a normal number that is large, 
+      <td class="icon_class"><img src="icons_4/warning.svg" alt="" width="50"/></td>
+      <td class="td_text"><div class="tooltip">Latent Infinity (-)
+		  <span class="tooltiptext">Detected when an operation produces a normal number that is large, 
 			  and it is in close proximity to negative infinity.</span></div>
 	  </td>
       <td>
@@ -115,9 +124,9 @@
 	  </td>
     </tr>
     <tr class="tr_class">
-      <td class="icon_class"><img src="icons_3/warning.svg" alt="" width="50"/></td>
-      <td><div class="tooltip">Latent underflow
-		  <span class="tooltiptext">This is detected when an operation produces a normal number that is small 
+      <td class="icon_class"><img src="icons_4/warning.svg" alt="" width="50"/></td>
+      <td class="td_text"><div class="tooltip">Latent underflow
+		  <span class="tooltiptext">Detected when an operation produces a normal number that is small 
 			  and it is in close proximity to becoming an underflow (subnormal number).</span></div>
 	  </td>
       <td>
@@ -159,6 +168,15 @@
 	
 <div class="separation_class"></div>
 <h3 id="heading">FP64 Distribution</h3>
+	
+<table width="200" border="0" class="report_box_numbers">
+  <tbody>
+    <tr>
+      	<td>Smallest number: 4.940...x10<span class="superscript">-324</span></td>
+		<td>Largest number: 1.797...x10<span class="superscript">308</span></td>
+  </tbody>
+</table>
+	
 <div class="plot-container">
   <!-- FP64_HISTOGRAM --><img src="default_fp64_plot.svg" 
 	   alt="Histogram" class="histogram-svg">
@@ -166,6 +184,13 @@
 	
 <div class="separation_class"></div>
 <h3 id="heading">FP32 Distribution</h3>
+<table width="200" border="0" class="report_box_numbers">
+  <tbody>
+    <tr>
+      	<td>Smallest number: 1.401...x10<span class="superscript">-45</span></td>
+		<td>Largest number: 3.402...x10<span class="superscript">+38</span></td>
+  </tbody>
+</table>
 <div class="plot-container">
   <!-- FP32_HISTOGRAM --><img src="default_fp32_plot.svg" 
 	   alt="Histogram" class="histogram-svg">

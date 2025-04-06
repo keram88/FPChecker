@@ -306,8 +306,8 @@ def createRootReport():
 
   # Copy style and other files
   shutil.copy2(ROOT_REPORT_TEMPLATE_DIR+'/sitestyle.css', REPORTS_DIR+'/sitestyle.css')
-  if not os.path.exists(REPORTS_DIR+'/icons_3'):
-    shutil.copytree(ROOT_REPORT_TEMPLATE_DIR+'/icons_3', REPORTS_DIR+'/icons_3')
+  if not os.path.exists(REPORTS_DIR+'/icons_4'):
+    shutil.copytree(ROOT_REPORT_TEMPLATE_DIR+'/icons_4', REPORTS_DIR+'/icons_4')
 
   # Create exponent usage plots (if needed)
   if len(set(fp64_bin_values.values())) > 1:
