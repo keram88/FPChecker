@@ -75,8 +75,9 @@ void _FPC_GET_EXECUTION_ID_(char *executionId)
   // Maximum size for PID: we assume 2,000,000,000
   int pid = (int)getpid();
   char pidStr[11];
-  pidStr[0] = '\0';
-  sprintf(pidStr, "%d", pid);
+  // pidStr[0] = '\0';
+  // sprintf(pidStr, "%d", pid);
+  snprintf(pidStr, sizeof(pidStr), "%d", pid);
   strcat(executionId, "_");
   strcat(executionId, pidStr);
 }
