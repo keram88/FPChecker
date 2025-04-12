@@ -16,3 +16,4 @@ main
 .fpchecker/
 .DS_Store
 .fpc_log.txt
+.vscode/
