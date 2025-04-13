@@ -86,11 +86,11 @@ lu_factorization_partial_pivot(vector<vector<double>> A)
         // Perform elimination
         for (int j = k + 1; j < m; ++j)
         {
-            if (U[k][k] == 0)
+            /*if (U[k][k] == 0)
             {
                 cerr << "Error: Pivot element is zero. LU factorization may not be possible." << endl;
                 return make_tuple(vector<vector<double>>(), vector<vector<double>>(), vector<vector<double>>());
-            }
+            }*/
             L[j][k] = U[j][k] / U[k][k];
             for (int l = k; l < m; ++l)
             {
@@ -163,10 +163,10 @@ vector<double> backward_substitution(const vector<vector<double>> &U, const vect
 }
 
 // Solve Ax = b given PA = LU
-vector<double> solve_lu_system(const vector<vector<double>> &L,
-                               const vector<vector<double>> &U,
-                               const vector<vector<double>> &P,
-                               const vector<double> &b)
+vector<double> solve_lu_system_by_substitution(const vector<vector<double>> &L,
+                                               const vector<vector<double>> &U,
+                                               const vector<vector<double>> &P,
+                                               const vector<double> &b)
 {
     // 1. Permute the right-hand side: b' = Pb
     vector<double> b_prime = apply_permutation(P, b);
@@ -176,6 +176,17 @@ vector<double> solve_lu_system(const vector<vector<double>> &L,
 
     // 3. Solve Ux = y using backward substitution
     vector<double> x = backward_substitution(U, y);
+
+    return x;
+}
+
+vector<double> solve_system_with_LU(const vector<vector<double>> &A, const vector<double> &b)
+{
+    // Perform LU factorization with partial pivoting
+    auto [L, U, P] = lu_factorization_partial_pivot(A);
+
+    // Solve the system using forward and backward substitution
+    vector<double> x = solve_lu_system_by_substitution(L, U, P, b);
 
     return x;
 }

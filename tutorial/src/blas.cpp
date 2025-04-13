@@ -4,6 +4,9 @@
 #include <algorithm>
 #include <cfloat>
 #include <numeric>
+#include <iomanip>
+#include <string>
+#include <sstream>
 
 #include "blas.hpp"
 
@@ -13,8 +16,8 @@ using namespace std;
 // Helper functions
 // -----------------------------------------------------------
 
-// Print a matrix (for debugging)
-void print_matrix(const vector<vector<double>> &matrix)
+// Print a matrix (for debugging) using a basic format
+void print_matrix_simple(const vector<vector<double>> &matrix)
 {
     int rows = matrix.size();
     if (rows == 0)
@@ -30,6 +33,141 @@ void print_matrix(const vector<vector<double>> &matrix)
     }
     cout << endl;
 }
+
+// Remove trailing zeros and potentially the decimal point
+string trim_trailing_zeros(string s)
+{
+    size_t decimal_pos = s.find('.');
+    if (decimal_pos != string::npos)
+    {
+        size_t last_digit = s.length() - 1;
+        while (last_digit > decimal_pos && s[last_digit] == '0')
+        {
+            s.pop_back();
+            last_digit--;
+        }
+        if (last_digit == decimal_pos)
+        {
+            s.pop_back(); // Remove trailing decimal point if no digits after it
+        }
+    }
+    return s;
+}
+
+// Print a matrix (for debugging)
+void print_matrix(const vector<vector<double>> &matrix)
+{
+    int rows = matrix.size();
+    if (rows == 0)
+        return;
+    int cols = matrix[0].size();
+    for (int i = 0; i < rows; ++i)
+    {
+        for (int j = 0; j < cols; ++j)
+        {
+            double value = matrix[i][j];
+
+            if (abs(value) < 1e-9)
+            {
+                cout << "0\t";
+                continue;
+            }
+
+            string formatted_value;
+            bool printed = false;
+
+            for (int p = 6; p >= 0; --p)
+            {
+                stringstream ss;
+                ss << fixed << setprecision(p) << value;
+                formatted_value = ss.str();
+                string trimmed_value = trim_trailing_zeros(formatted_value);
+                if (trimmed_value.length() <= 7)
+                {
+                    cout << trimmed_value << "\t";
+                    printed = true;
+                    break;
+                }
+            }
+
+            if (!printed)
+            {
+                string original_value_str;
+                stringstream ss_orig;
+                ss_orig << value;
+                original_value_str = ss_orig.str();
+                if (original_value_str.length() > 7)
+                {
+                    cout << original_value_str.substr(0, 7) << "\t";
+                }
+                else
+                {
+                    cout << original_value_str << "\t";
+                }
+            }
+        }
+        cout << endl;
+    }
+    cout << endl;
+}
+
+/*
+void print_matrix(const vector<vector<double>> &matrix)
+{
+    int rows = matrix.size();
+    if (rows == 0)
+        return;
+    int cols = matrix[0].size();
+    for (int i = 0; i < rows; ++i)
+    {
+        for (int j = 0; j < cols; ++j)
+        {
+            double value = matrix[i][j];
+
+            // Check if the value is zero
+            if (abs(value) < 1e-9)
+            { // Using a small tolerance for floating-point comparison
+                cout << "0\t";
+                continue;
+            }
+
+            string formatted_value;
+            bool printed = false;
+
+            for (int p = 6; p >= 0; --p)
+            {
+                stringstream ss;
+                ss << fixed << setprecision(p) << value;
+                formatted_value = ss.str();
+                if (formatted_value.length() <= 7)
+                {
+                    cout << formatted_value << "\t";
+                    printed = true;
+                    break;
+                }
+            }
+
+            if (!printed)
+            {
+                string original_value_str;
+                stringstream ss_orig;
+                ss_orig << value;
+                original_value_str = ss_orig.str();
+                if (original_value_str.length() > 7)
+                {
+                    cout << original_value_str.substr(0, 7) << "\t";
+                }
+                else
+                {
+                    cout << original_value_str << "\t";
+                }
+            }
+        }
+        cout << endl;
+    }
+    cout << endl;
+}
+*/
 
 // Calculate the Frobenius norm of a matrix
 double frobenius_norm(const vector<vector<double>> &matrix)
@@ -209,4 +347,26 @@ vector<vector<double>> matrix_multiply(const vector<vector<double>> &A, const ve
     }
 
     return result;
+}
+
+std::vector<std::vector<double>> transpose_matrix(const std::vector<std::vector<double>> &matrix)
+{
+    if (matrix.empty() || matrix[0].empty())
+    {
+        return {}; // Return an empty matrix for empty input
+    }
+
+    size_t rows = matrix.size();
+    size_t cols = matrix[0].size();
+    std::vector<std::vector<double>> transposed_matrix(cols, std::vector<double>(rows));
+
+    for (size_t i = 0; i < rows; ++i)
+    {
+        for (size_t j = 0; j < cols; ++j)
+        {
+            transposed_matrix[j][i] = matrix[i][j];
+        }
+    }
+
+    return transposed_matrix;
 }

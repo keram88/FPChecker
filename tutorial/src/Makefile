@@ -1,19 +1,19 @@
 # Compiler and flags
-CXX = clang++
+CXX = clang++-fpchecker
 CXXFLAGS = -Wall -Wextra -std=c++17 -g -O2
 AR = ar
 ARFLAGS = rcs
 
 # Project names
 LIB_NAME = solverslib
-EXECUTABLE_NAME = tests_solvers
+EXECUTABLE_NAME = tests_LU_solver
 
 # Source files
-SRCS = blas.cpp linear_solvers.cpp
-TEST_SRC = tests_solvers.cpp
+SRCS = blas.cpp linear_solvers.cpp io.cpp
+TEST_SRC = tests_LU_solver.cpp
 
 # Header files (optional, but good to list)
-HDRS = blas.hpp linear_solvers.hpp
+HDRS = blas.hpp linear_solvers.hpp io.hpp
 
 # Object files
 OBJS = $(SRCS:.cpp=.o)

@@ -3,13 +3,15 @@
 
 #include <vector>
 
-using namespace std;
+std::tuple<std::vector<std::vector<double>>, std::vector<std::vector<double>>, std::vector<std::vector<double>>>
+lu_factorization_partial_pivot(std::vector<std::vector<double>> A);
 
-tuple<vector<vector<double>>, vector<vector<double>>, vector<vector<double>>>
-lu_factorization_partial_pivot(vector<vector<double>> A);
-vector<double> solve_lu_system(const vector<vector<double>> &L,
-                               const vector<vector<double>> &U,
-                               const vector<vector<double>> &P,
-                               const vector<double> &b);
+std::vector<double> solve_lu_system_by_substitution(const std::vector<std::vector<double>> &L,
+                                                    const std::vector<std::vector<double>> &U,
+                                                    const std::vector<std::vector<double>> &P,
+                                                    const std::vector<double> &b);
+
+// Solve AX = b using LU factorization
+std::vector<double> solve_system_with_LU(const std::vector<std::vector<double>> &A, const std::vector<double> &b);
 
 #endif // LINEAR_SOLVERS_HPP

@@ -1,0 +1,30 @@
+# Compiler and flags
+CXX = clang++-fpchecker
+CXXFLAGS = -Wall -Wextra -std=c++11 -g -O2
+
+# Source file
+SRC = run.cpp
+OBJ = $(SRC:.cpp=.o)
+EXECUTABLE_NAME = run
+
+# Library location and name
+LIB_DIR = ../src
+LIB_NAME = solverslib
+LIB_FILE = $(LIB_DIR)/lib$(LIB_NAME).a
+
+# Default target
+all: $(EXECUTABLE_NAME)
+
+# Rule to compile the source file
+$(OBJ): $(SRC)
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+# Rule to link with the library
+$(EXECUTABLE_NAME): $(OBJ) $(LIB_FILE)
+	$(CXX) $(CXXFLAGS) -o $@ $^ -L$(LIB_DIR) -l$(LIB_NAME)
+
+# Clean target
+clean:
+	rm -f $(OBJ) $(EXECUTABLE_NAME)
+
+.PHONY: all clean
