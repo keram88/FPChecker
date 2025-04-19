@@ -17,3 +17,4 @@ main
 .DS_Store
 .fpc_log.txt
 .vscode/
+.ipynb_checkpoints/
