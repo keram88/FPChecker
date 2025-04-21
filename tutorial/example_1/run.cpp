@@ -2,9 +2,9 @@
 #include <vector>
 #include <string>
 
-#include "../src/linear_solvers.hpp"
-#include "../src/blas.hpp"
-#include "../src/io.hpp"
+#include "../common/linear_solvers.hpp"
+#include "../common/blas.hpp"
+#include "../common/io.hpp"
 
 using namespace std;
 
