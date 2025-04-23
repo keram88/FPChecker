@@ -82,17 +82,20 @@
 #include "../common/blas.hpp"
 #include "../common/linear_solvers.hpp"
 
+typedef double Real_t;
+// typedef float Real_t;
+
 // Structure to hold the mesh data
 struct MeshData
 {
-    std::vector<std::array<double, 2>> points;
+    std::vector<std::array<Real_t, 2>> points;
     std::vector<std::array<int, 3>> triangles;
 };
 
 // Helper function to generate linearly spaced values (equivalent to numpy.linspace)
-std::vector<double> linspace(double start, double end, int num)
+std::vector<Real_t> linspace(Real_t start, Real_t end, int num)
 {
-    std::vector<double> linspaced;
+    std::vector<Real_t> linspaced;
     if (num == 0)
     {
         return linspaced;
@@ -102,7 +105,7 @@ std::vector<double> linspace(double start, double end, int num)
         linspaced.push_back(start);
         return linspaced;
     }
-    double delta = (end - start) / (num - 1);
+    Real_t delta = (end - start) / (num - 1);
     for (int i = 0; i < num; ++i)
     {
         linspaced.push_back(start + delta * i);
@@ -116,8 +119,8 @@ MeshData generate_L_mesh(int N)
     MeshData mesh;
 
     // Generate grid points
-    std::vector<double> x = linspace(0, 1, N);
-    std::vector<double> y = linspace(0, 1, N);
+    std::vector<Real_t> x = linspace(0, 1, N);
+    std::vector<Real_t> y = linspace(0, 1, N);
 
     std::map<std::pair<int, int>, int> point_indices;
     int index = 0;
@@ -177,14 +180,14 @@ MeshData generate_L_mesh(int N)
 }
 
 // Checks triagle areas are positive
-double signed_area(double x_1, double y_1, double x_2, double y_2, double x_3, double y_3)
+Real_t signed_area(Real_t x_1, Real_t y_1, Real_t x_2, Real_t y_2, Real_t x_3, Real_t y_3)
 {
-    double A = 0.5 * (x_1 * (y_2 - y_3) + x_2 * (y_3 - y_1) + x_3 * (y_1 - y_2));
+    Real_t A = 0.5 * (x_1 * (y_2 - y_3) + x_2 * (y_3 - y_1) + x_3 * (y_1 - y_2));
     return A;
 }
 
 // Check if the resulting matrix is symmetric
-bool is_symmetric(const std::vector<std::vector<double>> &matrix, double tolerance = 1e-9)
+bool is_symmetric(const std::vector<std::vector<Real_t>> &matrix, Real_t tolerance = 1e-9)
 {
     // Check if the matrix is a square matrix
     if (matrix.empty() || matrix.size() != matrix[0].size())
@@ -206,9 +209,9 @@ bool is_symmetric(const std::vector<std::vector<double>> &matrix, double toleran
     return true;
 }
 
-// Saves a double vector to a file
+// Saves a Real_t vector to a file
 // Each element is written on a new line.
-bool save_temperature_vector(const std::vector<double> &T, const std::string &filename)
+bool save_temperature_vector(const std::vector<Real_t> &T, const std::string &filename)
 {
     std::ofstream outfile(filename);
 
@@ -218,10 +221,10 @@ bool save_temperature_vector(const std::vector<double> &T, const std::string &fi
         return false;
     }
 
-    // Set precision for writing double values
+    // Set precision for writing Real_t values
     outfile << std::fixed << std::setprecision(10);
 
-    for (double value : T)
+    for (Real_t value : T)
     {
         outfile << value << std::endl;
     }
@@ -230,8 +233,8 @@ bool save_temperature_vector(const std::vector<double> &T, const std::string &fi
     return true;
 }
 
-// Saves coordinates (vector of arrays of 2 doubles) to a file
-bool save_coords(const std::vector<std::array<double, 2>> &coords, const std::string &filename)
+// Saves coordinates (vector of arrays of 2 Real_ts) to a file
+bool save_coords(const std::vector<std::array<Real_t, 2>> &coords, const std::string &filename)
 {
     std::ofstream outfile(filename);
 
@@ -244,7 +247,7 @@ bool save_coords(const std::vector<std::array<double, 2>> &coords, const std::st
     // Optional: Write the number of points and dimension on the first line
     // outfile << coords.size() << " " << 2 << std::endl;
 
-    // Set precision for writing double values
+    // Set precision for writing Real_t values
     outfile << std::fixed << std::setprecision(10);
 
     for (const auto &point : coords)
@@ -317,8 +320,8 @@ int main(int argc, char *argv[])
 
     // For large-scale FEM, a sparse matrix library (e.g., Eigen, SuiteSparse) would be more efficient.
     size_t num_nodes = coords.size();
-    std::vector<std::vector<double>> K_global(num_nodes, std::vector<double>(num_nodes, 0.0));
-    std::vector<double> f_global(num_nodes, 0.0); // f_global is initialized to zeros
+    std::vector<std::vector<Real_t>> K_global(num_nodes, std::vector<Real_t>(num_nodes, 0.0));
+    std::vector<Real_t> f_global(num_nodes, 0.0); // f_global is initialized to zeros
 
     int nodes_per_elem = 3; // For triangles
 
@@ -334,14 +337,14 @@ int main(int argc, char *argv[])
         const auto &coord_2 = coords[n2];
         const auto &coord_3 = coords[n3];
 
-        double x_1 = coord_1[0];
-        double y_1 = coord_1[1];
-        double x_2 = coord_2[0];
-        double y_2 = coord_2[1];
-        double x_3 = coord_3[0];
-        double y_3 = coord_3[1];
+        Real_t x_1 = coord_1[0];
+        Real_t y_1 = coord_1[1];
+        Real_t x_2 = coord_2[0];
+        Real_t y_2 = coord_2[1];
+        Real_t x_3 = coord_3[0];
+        Real_t y_3 = coord_3[1];
 
-        double A = signed_area(x_1, y_1, x_2, y_2, x_3, y_3);
+        Real_t A = signed_area(x_1, y_1, x_2, y_2, x_3, y_3);
         if (A <= 0)
         {
             // Handle error: non-positive area.
@@ -351,8 +354,8 @@ int main(int argc, char *argv[])
         }
 
         // Compute [B^e]
-        std::vector<std::vector<double>> B(2, std::vector<double>(3, 0.0));
-        double c = 1.0 / (2.0 * A);
+        std::vector<std::vector<Real_t>> B(2, std::vector<Real_t>(3, 0.0));
+        Real_t c = 1.0 / (2.0 * A);
         B[0][0] = y_2 - y_3;
         B[0][1] = y_3 - y_1;
         B[0][2] = y_1 - y_2;
@@ -364,19 +367,19 @@ int main(int argc, char *argv[])
 
         // Compute [L^e]
         // L_T is a matrix that maps local element degrees of freedom to global degrees of freedom.
-        std::vector<std::vector<double>>
-            L_T(num_nodes, std::vector<double>(nodes_per_elem, 0.0));
+        std::vector<std::vector<Real_t>>
+            L_T(num_nodes, std::vector<Real_t>(nodes_per_elem, 0.0));
         L_T[n1][0] = 1.0;
         L_T[n2][1] = 1.0;
         L_T[n3][2] = 1.0;
 
         // L is the transpose of L_T
-        std::vector<std::vector<double>> L = transpose_matrix(L_T);
+        std::vector<std::vector<Real_t>> L = transpose_matrix(L_T);
 
         // Compute [k^e]
         // k = B.T * B * Area
-        std::vector<std::vector<double>> B_T = transpose_matrix(B);
-        /*std::vector<std::vector<double>> B_T_B(3, std::vector<double>(3, 0.0));
+        std::vector<std::vector<Real_t>> B_T = transpose_matrix(B);
+        /*std::vector<std::vector<Real_t>> B_T_B(3, std::vector<Real_t>(3, 0.0));
         for (int i = 0; i < 3; ++i)
         {
             for (int j = 0; j < 3; ++j)
@@ -387,8 +390,8 @@ int main(int argc, char *argv[])
                 }
             }
         }*/
-        std::vector<std::vector<double>> B_T_B = matrix_multiply(B_T, B);
-        std::vector<std::vector<double>> k = multiply_matrix_constant(B_T_B, A);
+        std::vector<std::vector<Real_t>> B_T_B = matrix_multiply(B_T, B);
+        std::vector<std::vector<Real_t>> k = multiply_matrix_constant(B_T_B, A);
 
         // Compute [L^e]^T [k^e] [L^e] and add to K_global
         // This is the assembly process. The element stiffness matrix k (3x3)
@@ -435,9 +438,9 @@ int main(int argc, char *argv[])
         std::cout << f_global[i] << std::endl;
     }*/
 
-    std::map<int, double> T_known;
+    std::map<int, Real_t> T_known;
     // Boundary Conditions:
-    double BC_temp = 100.0; // boundary condition temperature
+    Real_t BC_temp = 100.0; // boundary condition temperature
 
     // Apply boundary conditions on the left side (nodes where original grid i % N == 0)
     // Need to iterate through original grid indices to identify these nodes
@@ -454,7 +457,7 @@ int main(int argc, char *argv[])
 
     // Change the boundary to be ascending
     // Constant to multiply the keys by
-    double constant = 3.0;
+    Real_t constant = 3.0;
     // Sorting the keys and updating values in T_known
     std::vector<int> sorted_keys;
     for (const auto &pair : T_known)
@@ -465,11 +468,11 @@ int main(int argc, char *argv[])
 
     for (int key : sorted_keys)
     {
-        T_known[key] = static_cast<double>(key) * constant;
+        T_known[key] = static_cast<Real_t>(key) * constant;
     }
 
     // Add some boundary conditions on the right side (where x == 1.0)
-    double BC_right_side = 1.0;
+    Real_t BC_right_side = 1.0;
     for (size_t node_index = 0; node_index < coords.size(); ++node_index)
     {
         if (coords[node_index][0] == 1.0)
@@ -491,8 +494,8 @@ int main(int argc, char *argv[])
 
     // Reduced System
     size_t num_unknown_nodes = unknown_nodes.size();
-    std::vector<std::vector<double>> K_reduced(num_unknown_nodes, std::vector<double>(num_unknown_nodes, 0.0));
-    std::vector<double> f_reduced(num_unknown_nodes, 0.0);
+    std::vector<std::vector<Real_t>> K_reduced(num_unknown_nodes, std::vector<Real_t>(num_unknown_nodes, 0.0));
+    std::vector<Real_t> f_reduced(num_unknown_nodes, 0.0);
 
     // Populate K_reduced and initial f_reduced
     for (size_t i = 0; i < num_unknown_nodes; ++i)
@@ -508,7 +511,7 @@ int main(int argc, char *argv[])
     for (const auto &pair : T_known)
     {
         int node = pair.first;
-        double temp = pair.second;
+        Real_t temp = pair.second;
 
         for (size_t i = 0; i < num_unknown_nodes; ++i)
         {
@@ -530,7 +533,7 @@ int main(int argc, char *argv[])
     std::cout << "-----------------------------------------------------------" << std::endl;
 
     // Reconstruct Full Temperature Vector
-    std::vector<double> T(num_nodes, 0.0);
+    std::vector<Real_t> T(num_nodes, 0.0);
 
     // Assign known temperatures
     for (const auto &pair : T_known)

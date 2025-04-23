@@ -12,9 +12,9 @@
 
 using namespace std;
 
-// -----------------------------------------------------------
-// Helper functions
-// -----------------------------------------------------------
+/***********************************************/
+/* FP64 API                                    */
+/***********************************************/
 
 // Print a matrix (for debugging) using a basic format
 void print_matrix_simple(const vector<vector<double>> &matrix)
@@ -390,4 +390,90 @@ std::vector<std::vector<double>> multiply_matrix_constant(const std::vector<std:
         }
     }
     return result;
+}
+
+/***********************************************/
+/* FP32 API                                    */
+/***********************************************/
+
+// Matrix multiplication
+vector<vector<float>> matrix_multiply(const vector<vector<float>> &A, const vector<vector<float>> &B)
+{
+    int rows_A = A.size();
+    if (rows_A == 0)
+    {
+        return {};
+    }
+    int cols_A = A[0].size();
+
+    int rows_B = B.size();
+    if (rows_B == 0)
+    {
+        return {};
+    }
+    int cols_B = B[0].size();
+
+    if (cols_A != rows_B)
+    {
+        cerr << "Error: Number of columns must be equal to the number of rows for multiplication." << endl;
+        return {};
+    }
+
+    vector<vector<float>> result(rows_A, vector<float>(cols_B, 0.0));
+
+    for (int i = 0; i < rows_A; ++i)
+    {
+        for (int j = 0; j < cols_B; ++j)
+        {
+            for (int k = 0; k < cols_A; ++k)
+            {
+                result[i][j] += A[i][k] * B[k][j];
+            }
+        }
+    }
+
+    return result;
+}
+
+std::vector<std::vector<float>> multiply_matrix_constant(const std::vector<std::vector<float>> &A, const float &c)
+{
+    size_t rows_A = A.size();
+    if (rows_A == 0)
+    {
+        return {};
+    }
+    size_t cols_A = A[0].size();
+
+    vector<vector<float>> result(A);
+
+    for (size_t row = 0; row < rows_A; ++row)
+    {
+        for (size_t col = 0; col < cols_A; ++col)
+        {
+            result[row][col] *= c;
+        }
+    }
+    return result;
+}
+
+std::vector<std::vector<float>> transpose_matrix(const std::vector<std::vector<float>> &matrix)
+{
+    if (matrix.empty() || matrix[0].empty())
+    {
+        return {}; // Return an empty matrix for empty input
+    }
+
+    size_t rows = matrix.size();
+    size_t cols = matrix[0].size();
+    std::vector<std::vector<float>> transposed_matrix(cols, std::vector<float>(rows));
+
+    for (size_t i = 0; i < rows; ++i)
+    {
+        for (size_t j = 0; j < cols; ++j)
+        {
+            transposed_matrix[j][i] = matrix[i][j];
+        }
+    }
+
+    return transposed_matrix;
 }

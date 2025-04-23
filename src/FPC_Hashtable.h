@@ -361,7 +361,7 @@ void _FPC_PRINT_HASH_TABLE_(_FPC_HTABLE_T *hashtable)
         int fp32_present = 0;
         for (int j = 0; j < FPC_HISTOGRAM_LEN; ++j)
         {
-          if (next->fp32_exponent_count[j] != 0)
+          if (next->fp32_exponent_count[j] != 0 && j != 0) // do not consider zero exponent
           {
             if (fp32_present)
               fprintf(fpe, ",\n");
@@ -376,7 +376,7 @@ void _FPC_PRINT_HASH_TABLE_(_FPC_HTABLE_T *hashtable)
         int fp64_present = 0;
         for (int j = 0; j < FPC_HISTOGRAM_LEN; ++j)
         {
-          if (next->fp64_exponent_count[j] != 0)
+          if (next->fp64_exponent_count[j] != 0 and j != 0) // do not consider zero exponent
           {
             if (fp64_present)
               fprintf(fpe, ",\n");

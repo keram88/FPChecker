@@ -176,9 +176,9 @@ def getLinesAffected():
 # FP32: 10^-45, 10^+38
 def loadExponentUsageTraces(files):
     fp64_min_exp = -330
-    fp64_max_exp = 310
-    fp32_min_exp = -50
-    fp32_max_exp = 40
+    fp64_max_exp = 330
+    fp32_min_exp = -45
+    fp32_max_exp = 45
 
     for key in range(fp64_min_exp, fp64_max_exp + 1):
         fp64_bin_values[key] = 0
@@ -239,9 +239,11 @@ def plot_exp_usage_bars(data_dict, group_size, filename):
     # Draw Limit lines
     if 300 in data_dict.keys(): # print if it's the fp64 data
         plt.axvline(x=308, color='red', linestyle='--')
-        plt.axvline(x=-324, color='red', linestyle='--')
+        #plt.axvline(x=-324, color='red', linestyle='--')
+        plt.axvline(x=-308, color='red', linestyle='--')
     plt.axvline(x=38, color='gray', linestyle='--')
-    plt.axvline(x=-45, color='gray', linestyle='--')
+    #plt.axvline(x=-45, color='gray', linestyle='--')
+    plt.axvline(x=-38, color='gray', linestyle='--')
 
     # Layout & format
     plt.xticks(rotation=45, ha="right") # rotate x axis labels for better readability
