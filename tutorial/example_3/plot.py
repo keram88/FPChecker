@@ -67,7 +67,7 @@ if __name__ == "__main__":
 
     if T is not None:
         print("Temperature vector loaded successfully:")
-        print(T)
+        #print(T)
         print(f"Shape of loaded array: {T.shape}")
 
 
@@ -77,12 +77,12 @@ if __name__ == "__main__":
 
     if coords is not None:
         print("Coordinates loaded successfully:")
-        print(coords)
+        #print(coords)
         print(f"Shape of loaded coords array: {coords.shape}")
 
     if triangles is not None:
         print("\nTriangles loaded successfully:")
-        print(triangles)
+        #print(triangles)
         print(f"Shape of loaded triangles array: {triangles.shape}")
 
     # Create a Triangulation object

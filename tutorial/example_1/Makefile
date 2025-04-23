@@ -3,12 +3,12 @@ CXX = clang++-fpchecker
 CXXFLAGS = -Wall -Wextra -std=c++11 -g -O2
 
 # Source file
-SRC = run.cpp
+SRC = lu_solve.cpp
 OBJ = $(SRC:.cpp=.o)
-EXECUTABLE_NAME = run
+EXECUTABLE_NAME = lu_solve
 
 # Library location and name
-LIB_DIR = ../src
+LIB_DIR = ../common
 LIB_NAME = solverslib
 LIB_FILE = $(LIB_DIR)/lib$(LIB_NAME).a
 

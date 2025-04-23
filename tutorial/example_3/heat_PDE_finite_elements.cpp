@@ -1,3 +1,75 @@
+// Solves 2D Heat Conduction using Finite Differences (a.k.a. Possion Equation)
+//
+// Equation:
+// \delta^2 T/\delta x^2 + \delta^2 T/\delta y^2 + s(x,y) = 0
+//
+// T(x,y): temperature distribution
+// Domain: 0 <= x <= L, 0 <= y <= L
+// s(x,y): source of heat
+
+// -------------------------------------------------------------------------------------
+// We compute the coefficient conductance matrices per element e:
+// [k^e] : coefficient conductance matrix for e
+//
+// Then we assemble the [k^e] to build the global [K].
+// We also need to biuld the gather/scatter arrays [L^e] per element e.
+//
+// [k^e] = [B^e]^T [D^e] [B^e] * A^e
+// [B^e]: contains the derivatives of the shape functions
+//                   __                           __
+// [B^e] = 1/(2*A^e) | y_2-y_3   y_3-y_1   y_1-y_2 |
+//                   | x_3-x_2   x_1-x_3   x_2-x_1 |
+//                   --                           --
+// [D^e] = constant (identity I)
+//
+// A^e: area of the triangular element
+// A^e = 1/2 * ( (x_2*y_3 - x_3*y_2) - (x_1*y_3 - x_3*y_1) + (x_1*y_2 - x_2*y_1) )
+//
+// Remark:
+// We use a consistent ordering of the vertices, such as counterclockwise to ensure consistency.
+// Check the orientation of the triangle by computing the signed area.
+// If A > 0, the triangle is oriented counterclockwise (which is what we want)
+// Signed area: A = 1/2 * (x_1*(y_2-y_3) + x_2*(y_3-y_1) + x_3*(y_1-y_2))
+//
+// -------------------------------------------------------------------------------------
+// *** Computing Gather/Scatter Matrices [L^e] ***
+//
+// [L^e] is a sparse matrix of size n x m.
+// n: is the number of local degrees of freedom (number of nodes in the element, e.g., 3 for a triangular element).
+// m: is the total number of global degrees of freedom (number of global nodes).
+// For example, if element e has local nodes 1,2,3 corresponding to global nodes 3,5,7, then
+//
+// [L^e] = [
+// 0 0 1 0 0 0 0 0 0
+// 0 0 0 0 1 0 0 0 0
+// 0 0 0 0 0 0 1 0 0
+// ]
+// -------------------------------------------------------------------------------------
+//
+// *** Compute Global K ***
+// [K] = \sum_{e=1}^{Num_elements} [L^e]^T [k^e] [L^e]
+
+// ====== Flux vector ======
+// The nodal flux vector is expressed as {f^e} = {f_omega^e} + {f_{\gamma_q}^e}.
+// We need to find the nodal flux vector due to the heat source which is given by:
+//
+// {f_omega^e} = \int \int_{omega^e} [N^e]^T s^e dV
+//
+// for element e.
+//
+// When the source s is a constant (does not vary over (x,y)):
+// {f_omega^e} = s^e * A * [1/3 1/3 1/3] = s^e [A/3 A/3 A/3] for triangles.
+//
+// ----- Boundary condition application -----
+// We apply the boundary to the left side of the rectable (or L shape):
+//         _________
+// BC --> |         |
+// BC --> |         |
+// BC --> |         |
+// BC --> |         |
+//         ---------
+// {f} = \sum_{e=1}^{num elements} ([L^e]^T {f^e})
+
 #include <vector>
 #include <cmath>
 #include <map>
@@ -7,6 +79,7 @@
 #include <algorithm> // For std::find
 #include <fstream>
 
+#include "../common/blas.hpp"
 #include "../common/linear_solvers.hpp"
 
 // Structure to hold the mesh data
@@ -37,6 +110,7 @@ std::vector<double> linspace(double start, double end, int num)
     return linspaced;
 }
 
+// Genarets a mesh in L shape
 MeshData generate_L_mesh(int N)
 {
     MeshData mesh;
@@ -102,7 +176,7 @@ MeshData generate_L_mesh(int N)
     return mesh;
 }
 
-// Checks areas are positive
+// Checks triagle areas are positive
 double signed_area(double x_1, double y_1, double x_2, double y_2, double x_3, double y_3)
 {
     double A = 0.5 * (x_1 * (y_2 - y_3) + x_2 * (y_3 - y_1) + x_3 * (y_1 - y_2));
@@ -132,7 +206,7 @@ bool is_symmetric(const std::vector<std::vector<double>> &matrix, double toleran
     return true;
 }
 
-// Function to save a double vector to a file
+// Saves a double vector to a file
 // Each element is written on a new line.
 bool save_temperature_vector(const std::vector<double> &T, const std::string &filename)
 {
@@ -156,7 +230,7 @@ bool save_temperature_vector(const std::vector<double> &T, const std::string &fi
     return true;
 }
 
-// Function to save coordinates (vector of arrays of 2 doubles) to a file
+// Saves coordinates (vector of arrays of 2 doubles) to a file
 bool save_coords(const std::vector<std::array<double, 2>> &coords, const std::string &filename)
 {
     std::ofstream outfile(filename);
@@ -182,7 +256,7 @@ bool save_coords(const std::vector<std::array<double, 2>> &coords, const std::st
     return true;
 }
 
-// Function to save triangles (vector of arrays of 3 ints) to a file
+// Saves triangles (vector of arrays of 3 ints) to a file
 bool save_triangles(const std::vector<std::array<int, 3>> &triangles, const std::string &filename)
 {
     std::ofstream outfile(filename);
@@ -205,24 +279,38 @@ bool save_triangles(const std::vector<std::array<int, 3>> &triangles, const std:
     return true;
 }
 
-int main()
+int main(int argc, char *argv[])
 {
-    int N = 20; // Example value for N
+    // Check if the correct number of arguments is provided
+    if (argc != 2)
+    {
+        std::cerr << "Usage: " << argv[0] << " <number of nodes>" << std::endl;
+        return 1;
+    }
+
+    int N = 10; // Nodes
+
+    try
+    {
+        N = std::stod(argv[1]);
+    }
+    catch (const std::invalid_argument &ia)
+    {
+        std::cerr << "Invalid argument: " << ia.what() << std::endl;
+        return 1;
+    }
+
     MeshData mesh = generate_L_mesh(N);
 
     // Print points
-    std::cout << "Points:" << std::endl;
-    for (const auto &point : mesh.points)
-    {
-        std::cout << "(" << point[0] << ", " << point[1] << ")" << std::endl;
-    }
+    // std::cout << "Points:" << std::endl;
+    // for (const auto &point : mesh.points)
+    //     std::cout << "(" << point[0] << ", " << point[1] << ")" << std::endl;
 
     // Print triangles
-    std::cout << "\nTriangles:" << std::endl;
-    for (const auto &triangle : mesh.triangles)
-    {
-        std::cout << "[" << triangle[0] << ", " << triangle[1] << ", " << triangle[2] << "]" << std::endl;
-    }
+    // std::cout << "\nTriangles:" << std::endl;
+    // for (const auto &triangle : mesh.triangles)
+    //     std::cout << "[" << triangle[0] << ", " << triangle[1] << ", " << triangle[2] << "]" << std::endl;
 
     const auto &coords = mesh.points;
     const auto &triangles = mesh.triangles;
@@ -233,6 +321,8 @@ int main()
     std::vector<double> f_global(num_nodes, 0.0); // f_global is initialized to zeros
 
     int nodes_per_elem = 3; // For triangles
+
+    std::cout << "Computing global stiffness matrix K_global and force vector f_global..." << std::endl;
 
     for (const auto &tria_indices : triangles)
     {
@@ -270,13 +360,7 @@ int main()
         B[1][1] = x_1 - x_3;
         B[1][2] = x_2 - x_1;
 
-        for (int row = 0; row < 2; ++row)
-        {
-            for (int col = 0; col < 3; ++col)
-            {
-                B[row][col] *= c;
-            }
-        }
+        B = multiply_matrix_constant(B, c);
 
         // Compute [L^e]
         // L_T is a matrix that maps local element degrees of freedom to global degrees of freedom.
@@ -287,27 +371,12 @@ int main()
         L_T[n3][2] = 1.0;
 
         // L is the transpose of L_T
-        std::vector<std::vector<double>> L(nodes_per_elem, std::vector<double>(num_nodes, 0.0));
-        for (size_t i = 0; i < num_nodes; ++i)
-        {
-            for (int j = 0; j < nodes_per_elem; ++j)
-            {
-                L[j][i] = L_T[i][j];
-            }
-        }
+        std::vector<std::vector<double>> L = transpose_matrix(L_T);
 
         // Compute [k^e]
-        // k = B.T * B * A
-        std::vector<std::vector<double>> B_T(3, std::vector<double>(2, 0.0));
-        for (int i = 0; i < 2; ++i)
-        {
-            for (int j = 0; j < 3; ++j)
-            {
-                B_T[j][i] = B[i][j];
-            }
-        }
-
-        std::vector<std::vector<double>> B_T_B(3, std::vector<double>(3, 0.0));
+        // k = B.T * B * Area
+        std::vector<std::vector<double>> B_T = transpose_matrix(B);
+        /*std::vector<std::vector<double>> B_T_B(3, std::vector<double>(3, 0.0));
         for (int i = 0; i < 3; ++i)
         {
             for (int j = 0; j < 3; ++j)
@@ -317,16 +386,9 @@ int main()
                     B_T_B[i][j] += B_T[i][l] * B[l][j];
                 }
             }
-        }
-
-        std::vector<std::vector<double>> k(3, std::vector<double>(3, 0.0));
-        for (int i = 0; i < 3; ++i)
-        {
-            for (int j = 0; j < 3; ++j)
-            {
-                k[i][j] = B_T_B[i][j] * A;
-            }
-        }
+        }*/
+        std::vector<std::vector<double>> B_T_B = matrix_multiply(B_T, B);
+        std::vector<std::vector<double>> k = multiply_matrix_constant(B_T_B, A);
 
         // Compute [L^e]^T [k^e] [L^e] and add to K_global
         // This is the assembly process. The element stiffness matrix k (3x3)
@@ -355,9 +417,8 @@ int main()
     // Example: Print a portion of K_global and f_global
     std::cout << std::fixed << std::setprecision(6); // For formatted output
 
-    // std::cout << K_global.size() << " x " << K_global[0].size() << std::endl;
-
-    std::cout << "\nK_global:" << std::endl;
+    // Print K_global and f_global (optional)
+    /*std::cout << "\nK_global:" << std::endl;
     for (size_t i = 0; i < K_global.size(); ++i)
     {
         for (size_t j = 0; j < K_global[i].size(); ++j)
@@ -365,13 +426,14 @@ int main()
             std::cout << K_global[i][j] << " ";
         }
         std::cout << std::endl;
-    }
+    }*/
 
-    std::cout << "\nf_global:" << std::endl;
+    // Print f_global (optional)
+    /* std::cout << "\nf_global:" << std::endl;
     for (size_t i = 0; i < f_global.size(); ++i)
     {
         std::cout << f_global[i] << std::endl;
-    }
+    }*/
 
     std::map<int, double> T_known;
     // Boundary Conditions:
@@ -458,29 +520,13 @@ int main()
     // Print K_reduced and f_reduced (optional)
     std::cout << std::fixed << std::setprecision(6);
 
-    std::cout << "K_reduced:" << std::endl;
-    for (size_t i = 0; i < num_unknown_nodes; ++i)
-    {
-        for (size_t j = 0; j < num_unknown_nodes; ++j)
-        {
-            std::cout << K_reduced[i][j] << (j == num_unknown_nodes - 1 ? "" : " ");
-        }
-        std::cout << std::endl;
-    }
-
-    std::cout << "\nf_reduced:" << std::endl;
-    for (size_t i = 0; i < num_unknown_nodes; ++i)
-    {
-        std::cout << f_reduced[i] << std::endl;
-    }
-
     // Solve linear system
     auto T_unknown = solve_system_with_LU(K_reduced, f_reduced);
 
     // Print solution
-    std::cout << "Solution T_unknown:" << std::endl;
-    for (size_t i = 0; i < T_unknown.size(); ++i)
-        std::cout << "T_unknown[" << i << "]: " << T_unknown[i] << std::endl;
+    // std::cout << "Solution T_unknown:" << std::endl;
+    // for (size_t i = 0; i < T_unknown.size(); ++i)
+    //    std::cout << "T_unknown[" << i << "]: " << T_unknown[i] << std::endl;
     std::cout << "-----------------------------------------------------------" << std::endl;
 
     // Reconstruct Full Temperature Vector
@@ -499,12 +545,15 @@ int main()
     }
 
     // Print the full temperature vector T
-    std::cout << "\nFull Temperature Vector T:" << std::endl;
+    std::cout << "Full Temperature Vector T:" << std::endl;
     std::cout << std::fixed << std::setprecision(6);
-    for (size_t i = 0; i < num_nodes; ++i)
+    for (size_t i = 0; i < std::min({num_nodes, (size_t)20}); ++i)
     {
         std::cout << "T[" << i << "] = " << std::setw(10) << T[i] << std::endl;
     }
+    std::cout << "..." << std::endl;
+
+    std::cout << "Saving results to files..." << std::endl;
 
     if (save_temperature_vector(T, "temperature_output.txt"))
     {

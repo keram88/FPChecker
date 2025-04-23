@@ -317,7 +317,7 @@ vector<vector<double>> matrix_multiply(const vector<vector<double>> &A, const ve
 
     vector<vector<double>> result(rows_A, vector<double>(cols_B, 0.0));
 
-    /*for (int i = 0; i < rows_A; ++i)
+    for (int i = 0; i < rows_A; ++i)
     {
         for (int j = 0; j < cols_B; ++j)
         {
@@ -326,10 +326,10 @@ vector<vector<double>> matrix_multiply(const vector<vector<double>> &A, const ve
                 result[i][j] += A[i][k] * B[k][j];
             }
         }
-    }*/
+    }
 
     // Using Kahan Summation Algorithm
-    for (int i = 0; i < rows_A; ++i)
+    /*for (int i = 0; i < rows_A; ++i)
     {
         for (int j = 0; j < cols_B; ++j)
         {
@@ -344,7 +344,7 @@ vector<vector<double>> matrix_multiply(const vector<vector<double>> &A, const ve
             }
             result[i][j] = sum;
         }
-    }
+    }*/
 
     return result;
 }
@@ -369,4 +369,25 @@ std::vector<std::vector<double>> transpose_matrix(const std::vector<std::vector<
     }
 
     return transposed_matrix;
+}
+
+std::vector<std::vector<double>> multiply_matrix_constant(const std::vector<std::vector<double>> &A, const double &c)
+{
+    size_t rows_A = A.size();
+    if (rows_A == 0)
+    {
+        return {};
+    }
+    size_t cols_A = A[0].size();
+
+    vector<vector<double>> result(A);
+
+    for (size_t row = 0; row < rows_A; ++row)
+    {
+        for (size_t col = 0; col < cols_A; ++col)
+        {
+            result[row][col] *= c;
+        }
+    }
+    return result;
 }
