@@ -719,4 +719,11 @@ void _FPC_FP64_CHECK_(
 
 // #endif
 
+/*----------------------------------------------------------------------------*/
+/* Annotation Macros                                                          */
+/*----------------------------------------------------------------------------*/
+
+#define FPC_INSTRUMENT_BLOCK __attribute__((annotate("_FPC_INSTRUMENT_BLOCK_"))) int _marker __attribute__((unused)) = 0;
+#define FPC_INSTRUMENT_FUNC __attribute__((annotate("_FPC_INSTRUMENT_FUNCTION_")))
+
 #endif /* SRC_RUNTIME_CPU_H_ */

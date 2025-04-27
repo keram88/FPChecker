@@ -174,6 +174,7 @@ void CPUFPInstrumentation::instrumentFunction(Function *f, long int *c)
 {
   if (CUDAAnalysis::CodeMatching::isUnwantedFunction(f))
     return;
+  bool funAnnotated = functionisAnnotated(f);
 
   assert((fp32_check_function != nullptr) && "Function not initialized!");
   assert((fp64_check_function != nullptr) && "Function not initialized!");
@@ -185,6 +186,8 @@ void CPUFPInstrumentation::instrumentFunction(Function *f, long int *c)
   long int instrumentedOps = 0;
   for (auto bb = f->begin(), end = f->end(); bb != end; ++bb)
   {
+    if (codeIsAnnotated && !funAnnotated && !basicBlockisAnnotated(&(*bb)))
+      continue;
     for (auto i = bb->begin(), bend = bb->end(); i != bend; ++i)
     {
       Instruction *inst = &(*i);
@@ -373,6 +376,132 @@ bool CPUFPInstrumentation::selectedBasedOnCondition(Instruction *inst,
     ret = true;
 
   return ret;
+}
+
+bool CPUFPInstrumentation::basicBlockisAnnotated(const BasicBlock *bb)
+{
+  for (auto i = bb->begin(), end = bb->end(); i != end; ++i)
+  {
+    const Instruction *I = &(*i);
+    if (const llvm::CallInst *Call = llvm::dyn_cast<llvm::CallInst>(I))
+    {
+      Function *fn = Call->getCalledFunction();
+      if (fn == nullptr)
+        continue; // Skip if the function is not a direct call
+      if (fn->getIntrinsicID() == llvm::Intrinsic::var_annotation)
+      {
+        llvm::Value *val = Call->getOperand(1);
+        if (llvm::GlobalVariable *GV = llvm::dyn_cast<llvm::GlobalVariable>(val))
+        {
+          if (GV->isConstant()) // // Check if the global is a constant
+          {
+            if (llvm::Constant *Initializer = GV->getInitializer()) //  Get the initializer constant
+            {
+              // Check if the initializer is a ConstantDataArray (which holds string literals)
+              if (llvm::ConstantDataArray *CDA = llvm::dyn_cast<llvm::ConstantDataArray>(Initializer))
+              {
+                if (CDA->getElementType()->isIntegerTy(8)) // array of i8 (char)
+                {
+                  llvm::StringRef StringContent = CDA->getAsString();
+                  if (StringContent.contains("_FPC_INSTRUMENT_BLOCK_"))
+                  {
+                    return true;
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  return false; // No annotation found in the basic block
+}
+
+// Check if the function is annotated.
+bool CPUFPInstrumentation::functionisAnnotated(const Function *f)
+{
+  assert((f != nullptr) && "Function not initialized!");
+  const llvm::Module *M = f->getParent();
+  if (M == nullptr)
+    return false;
+
+  // Access the @llvm.global.annotations global variable (this is an array)
+  llvm::GlobalVariable *GV = M->getGlobalVariable("llvm.global.annotations");
+
+  if (!GV || !GV->hasInitializer())
+    return false; // No global annotations in this module or it's not initialized
+
+  // The initializer is a constant array of structures
+  llvm::Constant *Initializer = GV->getInitializer();
+  llvm::ConstantArray *CA = llvm::dyn_cast<llvm::ConstantArray>(Initializer);
+  if (!CA)
+    return false; // llvm.global.annotations initializer is not a ConstantArray
+
+  // --- Iterate through the array of annotation structures ---
+  // Examlple:
+  // @llvm.global.annotations = appending global [2 x { ptr, ptr, ptr, i32, ptr }]
+  // [{ ptr, ptr, ptr, i32, ptr } { ptr @_Z15matrix_multiplyRKNSt3__16vectorINS0_IdNS_9allocatorIdEEEENS1_IS3_EEEES7_,
+  // ptr @.str.65, ptr @.str.66, i32 8, ptr null }, { ptr, ptr, ptr, i32, ptr }
+  // { ptr @_Z17subtract_matricesRKNSt3__16vectorINS0_IdNS_9allocatorIdEEEENS1_IS3_EEEES7_, ptr @.str.65,
+  // ptr @.str.66, i32 34, ptr null }], section "llvm.metadata"
+  for (unsigned i = 0; i < CA->getNumOperands(); ++i)
+  {
+    llvm::ConstantStruct *CS = llvm::dyn_cast<llvm::ConstantStruct>(CA->getOperand(i));
+    if (!CS || CS->getNumOperands() != 5)
+      continue; // Expecting a struct with 5 fields: {ptr, ptr, ptr, i32, ptr}
+
+    // Check if the first pointer field points to our function 'f'
+    // The first operand is the pointer to the annotated value.
+    // Use stripPointerCasts to get the underlying value in case of bitcasts.
+    llvm::Value *AnnotatedValue = CS->getOperand(0)->stripPointerCasts();
+
+    // Try to cast the annotated value to a Function*
+    llvm::Function *AnnotatedFunc = llvm::dyn_cast<llvm::Function>(AnnotatedValue);
+
+    if (AnnotatedFunc && AnnotatedFunc == f) // Found the annotation entry for our function 'f'
+    {
+      // Retrieve the second pointer field (annotation string pointer)
+      llvm::Constant *AnnotationStrPtrConstant = CS->getOperand(1);
+
+      // The pointer points to a global variable containing the string.
+      llvm::GlobalVariable *AnnotationStrGV =
+          llvm::dyn_cast<llvm::GlobalVariable>(AnnotationStrPtrConstant->stripPointerCasts());
+
+      if (AnnotationStrGV && AnnotationStrGV->hasInitializer())
+      {
+        // Access the initializer of the string global variable
+        llvm::Constant *StringInitializer = AnnotationStrGV->getInitializer();
+
+        // The initializer should be a ConstantDataArray (for a string literal)
+        llvm::ConstantDataArray *CDA = llvm::dyn_cast<llvm::ConstantDataArray>(StringInitializer);
+
+        if (CDA && CDA->isString())
+        {
+          // Found the string data
+          llvm::StringRef AnnotationString = CDA->getAsString();
+          if (AnnotationString.contains("_FPC_INSTRUMENT_FUNCTION_"))
+          {
+            // Print the annotation string
+            // llvm::outs() << "Annotation for function '" << f->getName() << "': " << AnnotationString << "\n";
+            return true;
+          }
+          else // A function could have multiple annotations, so continue the loop.
+          {
+            continue;
+          }
+        }
+      }
+    }
+  }
+
+  return false; // No annotation found for this function
+}
+
+void CPUFPInstrumentation::setCodeIsAnnotated(bool b)
+{
+  codeIsAnnotated = b;
 }
 
 bool CPUFPInstrumentation::isCmpEqual(const Instruction *inst)

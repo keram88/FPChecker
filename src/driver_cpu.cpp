@@ -26,87 +26,106 @@
 
 using namespace llvm;
 
-namespace CPUAnalysis {
+namespace CPUAnalysis
+{
 
-bool analyzeProgramModule(Module &M) {
-  Module *m = &M;
-  CPUFPInstrumentation *fpInstrumentation = new CPUFPInstrumentation(m);
-  long int instrumented = 0;
+  bool analyzeProgramModule(Module &M)
+  {
+    Module *m = &M;
+    CPUFPInstrumentation *fpInstrumentation = new CPUFPInstrumentation(m);
+    long int instrumented = 0;
 
+    // Check if code is annotated
+    if (std::getenv("FPC_ANNOTATED") != nullptr)
+    {
+      fpInstrumentation->setCodeIsAnnotated(true);
 #ifdef FPC_DEBUG
-  std::string out = "Running Module pass on: " + m->getName().str();
-  CUDAAnalysis::Logging::info(out.c_str());
+      Logging::info("Code is annotated.");
 #endif
-
-  for (auto f = M.begin(), e = M.end(); f != e; ++f) {
-    // Discard function declarations
-    if (f->isDeclaration())
-      continue;
-
-    Function *F = &(*f);
-
-    if (CUDAAnalysis::CodeMatching::isUnwantedFunction(F))
-      continue;
-
-#ifdef FPC_DEBUG
-    std::string fname = "Instrumenting function: " + F->getName().str();
-    CUDAAnalysis::Logging::info(fname.c_str());
-#endif
-    long int c = 0;
-    fpInstrumentation->instrumentFunction(F, &c);
-    instrumented += c;
-
-    if (CUDAAnalysis::CodeMatching::isMainFunction(F)) {
-#ifdef FPC_DEBUG
-      CUDAAnalysis::Logging::info("main() found");
-#endif
-      fpInstrumentation->instrumentMainFunction(F);
     }
-  }
 
-  std::string out_tmp = "Instrumented " + std::to_string(instrumented) + " @ " +
-                        m->getName().str();
-  CUDAAnalysis::Logging::info(out_tmp.c_str());
-
-  // This emulates a failure in the pass
-  if (getenv("FPC_INJECT_FAULT") != NULL)
-    exit(-1);
-
-  delete fpInstrumentation;
-  return false;
-}
-
-// LLVM pass that uses the new pass manager.
-struct CPUKernelAnalysis : public PassInfoMixin<CPUKernelAnalysis> {
-  PreservedAnalyses run(Module &M, ModuleAnalysisManager &AM) {
-    llvm::outs() << "Running ModulePass on module: " << M.getName() << "\n";
-    analyzeProgramModule(M);
-    return PreservedAnalyses::none();
-  }
-
-  static bool isRequired() { return true; }
-};
-
-PassPluginLibraryInfo getMyModulePassPluginInfo() {
-  const auto callback = [](PassBuilder &PB) {
-    PB.registerOptimizerLastEPCallback(
-        [&](ModulePassManager &MPM, OptimizationLevel opt) {
 #ifdef FPC_DEBUG
-          std::string fname =
-              "Optimzation Level: " + std::to_string(opt.getSpeedupLevel());
-          CUDAAnalysis::Logging::info(fname.c_str());
+    std::string out = "Running Module pass on: " + m->getName().str();
+    CUDAAnalysis::Logging::info(out.c_str());
 #endif
-          // MPM.addPass(createModuleToFunctionPassAdaptor(CPUKernelAnalysis()));
-          MPM.addPass(CPUKernelAnalysis());
-          return true;
-        });
+
+    for (auto f = M.begin(), e = M.end(); f != e; ++f)
+    {
+      // Discard function declarations
+      if (f->isDeclaration())
+        continue;
+
+      Function *F = &(*f);
+
+      if (CUDAAnalysis::CodeMatching::isUnwantedFunction(F))
+        continue;
+
+#ifdef FPC_DEBUG
+      std::string fname = "Instrumenting function: " + F->getName().str();
+      CUDAAnalysis::Logging::info(fname.c_str());
+#endif
+      long int c = 0;
+      fpInstrumentation->instrumentFunction(F, &c);
+      instrumented += c;
+
+      if (CUDAAnalysis::CodeMatching::isMainFunction(F))
+      {
+#ifdef FPC_DEBUG
+        CUDAAnalysis::Logging::info("main() found");
+#endif
+        fpInstrumentation->instrumentMainFunction(F);
+      }
+    }
+
+    std::string out_tmp = "Instrumented " + std::to_string(instrumented) + " @ " +
+                          m->getName().str();
+    CUDAAnalysis::Logging::info(out_tmp.c_str());
+
+    // This emulates a failure in the pass
+    if (getenv("FPC_INJECT_FAULT") != NULL)
+      exit(-1);
+
+    delete fpInstrumentation;
+    return false;
+  }
+
+  // LLVM pass that uses the new pass manager.
+  struct CPUKernelAnalysis : public PassInfoMixin<CPUKernelAnalysis>
+  {
+    PreservedAnalyses run(Module &M, ModuleAnalysisManager &AM)
+    {
+      llvm::outs() << "Running ModulePass on module: " << M.getName() << "\n";
+      analyzeProgramModule(M);
+      return PreservedAnalyses::none();
+    }
+
+    static bool isRequired() { return true; }
   };
 
-  return {LLVM_PLUGIN_API_VERSION, "CPUKernelAnalysis", "0.5", callback};
-};
+  PassPluginLibraryInfo getMyModulePassPluginInfo()
+  {
+    const auto callback = [](PassBuilder &PB)
+    {
+      PB.registerOptimizerLastEPCallback(
+          [&](ModulePassManager &MPM, OptimizationLevel opt)
+          {
+#ifdef FPC_DEBUG
+            std::string fname =
+                "Optimzation Level: " + std::to_string(opt.getSpeedupLevel());
+            CUDAAnalysis::Logging::info(fname.c_str());
+#endif
+            // MPM.addPass(createModuleToFunctionPassAdaptor(CPUKernelAnalysis()));
+            MPM.addPass(CPUKernelAnalysis());
+            return true;
+          });
+    };
 
-extern "C" LLVM_ATTRIBUTE_WEAK PassPluginLibraryInfo llvmGetPassPluginInfo() {
-  return getMyModulePassPluginInfo();
-}
+    return {LLVM_PLUGIN_API_VERSION, "CPUKernelAnalysis", "0.5", callback};
+  };
+
+  extern "C" LLVM_ATTRIBUTE_WEAK PassPluginLibraryInfo llvmGetPassPluginInfo()
+  {
+    return getMyModulePassPluginInfo();
+  }
 
 } // namespace CPUAnalysis

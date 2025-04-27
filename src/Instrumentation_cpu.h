@@ -24,6 +24,8 @@ namespace CPUAnalysis
     Function *fpc_init_args;
     Function *fpc_print_locations;
 
+    bool codeIsAnnotated = false;
+
     // maximum number for a code line
     // int maxNumLocations = 0;
 
@@ -44,6 +46,7 @@ namespace CPUAnalysis
     CPUFPInstrumentation(Module *M);
     void instrumentFunction(Function *f, long int *c);
     void instrumentMainFunction(Function *f);
+    void setCodeIsAnnotated(bool b);
     // void generateCodeForInterruption();
     // void instrumentErrorArray();
     // void instrumentEndOfKernel(Function *f);
@@ -58,6 +61,8 @@ namespace CPUAnalysis
     // bool errorsDontAbortMode();
     static bool isCmpEqual(const Instruction *inst);
     static bool isFMAOperation(const Instruction *inst);
+    static bool basicBlockisAnnotated(const BasicBlock *bb);
+    static bool functionisAnnotated(const Function *f);
   };
 
 }
