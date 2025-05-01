@@ -1,4 +1,4 @@
-// Solves 2D Heat Conduction using Finite Differences (a.k.a. Possion Equation)
+// Solves 2D Heat Conduction using Finite Elements (a.k.a. Possion Equation)
 //
 // Equation:
 // \delta^2 T/\delta x^2 + \delta^2 T/\delta y^2 + s(x,y) = 0

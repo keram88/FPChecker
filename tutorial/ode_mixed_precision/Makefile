@@ -1,12 +1,11 @@
 # Compiler and flags
-#CXX = clang++-fpchecker
-CXX = mpic++-fpchecker
+CXX = clang++-fpchecker
 CXXFLAGS = -Wall -Wextra -std=c++11 -g -O2
 
 # Source file
-SRC = heat_mpi.cpp
+SRC = van_der_pol.cpp
 OBJ = $(SRC:.cpp=.o)
-EXECUTABLE_NAME = heat_mpi
+EXECUTABLE_NAME = van_der_pol
 
 # Default target
 all: $(EXECUTABLE_NAME)

@@ -8,10 +8,17 @@
 
 using namespace std;
 
-int main()
+int main(int argc, char *argv[])
 {
-    // string filename = "matrix.csv";
-    string filename = "bad_matrix.csv";
+    // Check if the correct number of arguments is provided
+    if (argc != 2)
+    {
+        std::cerr << "Usage: " << argv[0] << " <matrix file>" << std::endl;
+        return 1;
+    }
+
+    string filename = "./matrix.csv";
+    filename = argv[1];
 
     cout << "Loading matrix A:" << endl;
     vector<vector<double>> A = load_matrix_from_csv(filename);

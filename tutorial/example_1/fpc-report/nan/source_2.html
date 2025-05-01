@@ -1,0 +1,71 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>FPChecker Report</title>
+<link href="../sitestyle.css" rel="stylesheet" type="text/css">	
+	
+</head>
+<body class="body_class">
+<header>
+<div class="header_class">&nbsp;&nbsp;<img src="../icons_4/logo_fpchecker.png" alt=""/></div>
+</header>
+
+<div class="separation_class"></div>
+<div class="report_title">
+<b>Report Title:</b>
+./lu_solve bad_matrix.csv
+</div>
+	
+<div class="separation_class"></div>
+<div class="hierarchy_class"><a href="../index.html">Main Report</a> &nbsp; &gt; &nbsp; 
+<a href="./nan.html">Nan
+	</a> &nbsp; &gt; &nbsp;
+/Users/lagunaperalt1/projects/fpchecker/FPChecker/tutorial/common/linear_solvers.cpp
+</div>
+<h2 id="heading">
+Nan
+	Report
+</h2>
+<h3 id="heading">
+linear_solvers.cpp
+</h3>
+	
+<table width="600" border="0" class="report_box_source">
+  <tbody>
+<tr><td class="code_line_class">96</td><td><code> ... </code></td></tr>
+<tr><td class="code_line_class">97</td><td><code>            }*/</code></td></tr>
+<tr><td class="code_line_class">98</td><td><span class="highlightme"><code>            L[j][k] = U[j][k] / U[k][k];</code></span></td></tr>
+<tr><td class="code_line_class">99</td><td><code>            for (int l = k; l < m; ++l)</code></td></tr>
+<tr><td class="code_line_class">100</td><td><code>            {</code></td></tr>
+<tr><td class="code_line_class">101</td><td><span class="highlightme"><code>                U[j][l] = U[j][l] - L[j][k] * U[k][l];</code></span></td></tr>
+<tr><td class="code_line_class">102</td><td><code>                if (fabs(U[j][l]) < (10 * DBL_EPSILON))</code></td></tr>
+<tr><td class="code_line_class">103</td><td><code> ... </code></td></tr>
+<tr><td class="code_line_class">138</td><td><code> ... </code></td></tr>
+<tr><td class="code_line_class">139</td><td><code>        {</code></td></tr>
+<tr><td class="code_line_class">140</td><td><span class="highlightme"><code>            sum += L[i][j] * y[j];</code></span></td></tr>
+<tr><td class="code_line_class">141</td><td><code>        }</code></td></tr>
+<tr><td class="code_line_class">142</td><td><span class="highlightme"><code>        y[i] = b_prime[i] - sum; // Since L has 1s on the diagonal</code></span></td></tr>
+<tr><td class="code_line_class">143</td><td><code>    }</code></td></tr>
+<tr><td class="code_line_class">144</td><td><code> ... </code></td></tr>
+<tr><td class="code_line_class">155</td><td><code> ... </code></td></tr>
+<tr><td class="code_line_class">156</td><td><code>        {</code></td></tr>
+<tr><td class="code_line_class">157</td><td><span class="highlightme"><code>            sum += U[i][j] * x[j];</code></span></td></tr>
+<tr><td class="code_line_class">158</td><td><code>        }</code></td></tr>
+<tr><td class="code_line_class">159</td><td><code> ... </code></td></tr>
+<tr><td class="code_line_class">162</td><td><code> ... </code></td></tr>
+<tr><td class="code_line_class">163</td><td><code>        // }</code></td></tr>
+<tr><td class="code_line_class">164</td><td><span class="highlightme"><code>        x[i] = (y[i] - sum) / U[i][i];</code></span></td></tr>
+<tr><td class="code_line_class">165</td><td><code>    }</code></td></tr>
+<tr><td class="code_line_class">166</td><td><code> ... </code></td></tr>
+  <!--
+	<tr><td class="code_line_class">13</td><td> <code>   for(int i; i&lt;4) {</code></td></tr>
+  <tr><td class="code_line_class">10245</td><td>...</td></tr>
+	<tr><td class="code_line_class"></td><td>...</td></tr>
+	<tr><td class="code_line_class">10345</td><td> <span class="highlightme"><code>   x[i] = abs(y) + x[i+1]; </code></span></td></tr>
+  -->
+  </tbody>
+</table>
+	
+</body>
+</html>

@@ -25,6 +25,6 @@ $(EXECUTABLE_NAME): $(OBJ) $(LIB_FILE)
 
 # Clean target
 clean:
-	rm -f $(OBJ) $(EXECUTABLE_NAME)
+	rm -rf $(OBJ) $(EXECUTABLE_NAME) .fpc_logs
 
 .PHONY: all clean

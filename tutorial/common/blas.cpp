@@ -293,6 +293,7 @@ vector<vector<double>> subtract_matrices(const vector<vector<double>> &A, const 
 }
 
 // Matrix multiplication
+// FPC_INSTRUMENT_FUNC
 vector<vector<double>> matrix_multiply(const vector<vector<double>> &A, const vector<vector<double>> &B)
 {
     int rows_A = A.size();

@@ -3,9 +3,9 @@ CXX = clang++-fpchecker
 CXXFLAGS = -Wall -Wextra -std=c++11 -g -O2
 
 # Source file
-SRC = van_der_pol.cpp
+SRC = reaction_diffusion.cpp
 OBJ = $(SRC:.cpp=.o)
-EXECUTABLE_NAME = van_der_pol
+EXECUTABLE_NAME = reaction_diffusion
 
 # Default target
 all: $(EXECUTABLE_NAME)
