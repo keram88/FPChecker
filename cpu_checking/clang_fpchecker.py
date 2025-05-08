@@ -94,6 +94,7 @@ if __name__ == '__main__':
   compiler_name = os.environ['FPC_COMPILER']
   params = os.environ['FPC_COMPILER_PARAMS']
   cmd = Command(compiler_name, params.split())
+  
 
   if 'FPC_INSTRUMENT' not in os.environ:
     cmd.executeOriginalCommand()
