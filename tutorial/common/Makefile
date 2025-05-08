@@ -1,6 +1,6 @@
 # Compiler and flags
 CXX = clang++-fpchecker
-CXXFLAGS = -Wall -Wextra -std=c++17 -g -O2
+CXXFLAGS = -Wno-format -std=c++17 -g -O2
 AR = ar
 ARFLAGS = rcs
 

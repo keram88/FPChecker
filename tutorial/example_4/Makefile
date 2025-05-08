@@ -1,7 +1,7 @@
 # Compiler and flags
 #CXX = clang++-fpchecker
 CXX = mpic++-fpchecker
-CXXFLAGS = -Wall -Wextra -std=c++11 -g -O2
+CXXFLAGS = -Wno-format -std=c++11 -g -O2
 
 # Source file
 SRC = heat_mpi.cpp

@@ -1,6 +1,6 @@
 # Compiler and flags
 CXX = clang++-fpchecker
-CXXFLAGS = -Wall -Wextra -std=c++11 -g -O2
+CXXFLAGS = -Wno-format -std=c++11 -g -O2
 
 # Source file
 SRC = lu_solve.cpp
