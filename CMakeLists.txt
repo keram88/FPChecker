@@ -57,13 +57,16 @@ configure_file(interception_tool/intercept.h.in intercept.h)
 #	src/driver.cpp
 #)
 
-add_library(fpchecker_cpu SHARED 
+add_executable(fpchecker-show src/Show.cpp)
+
+add_library(fpchecker_cpu SHARED
 	src/CodeMatching.cpp
 	src/Instrumentation_cpu.cpp
 	src/Logging.cpp
 	src/Utility.cpp
 	src/driver_cpu.cpp
 )
+
 
 #add_library(fpchecker_plugin SHARED
 #	plugin/instrumentation_plugin.cpp
@@ -89,6 +92,19 @@ endif()
 
 set_target_properties(fpchecker_cpu PROPERTIES
     VERSION ${PROJECT_VERSION}
+)
+
+# Set extension of shared library
+if(APPLE)
+set(LIB_EXTENSION ".dylib")
+else()
+set(LIB_EXTENSION ".so")
+endif()
+
+target_compile_definitions(fpchecker-show
+    PRIVATE # This definition is only needed by this target itself
+    INSTALL_PREFIX="${CMAKE_INSTALL_PREFIX}"
+    SHARED_LIB_EXTENSION="${LIB_EXTENSION}"
 )
 
 #set_target_properties(fpchecker PROPERTIES
@@ -244,6 +260,10 @@ install(CODE "execute_process( COMMAND ${CMAKE_COMMAND} -E create_symlink \
 
 install(CODE "execute_process( COMMAND ${CMAKE_COMMAND} -E create_symlink \
         ${CMAKE_INSTALL_PREFIX}/cpu_checking/cc_mpi_frontend.sh ${CMAKE_INSTALL_PREFIX}/bin/mpicc-fpchecker )"
+)
+
+install(TARGETS fpchecker-show
+    DESTINATION bin
 )
 
 # Tests
