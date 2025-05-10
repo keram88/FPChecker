@@ -21,10 +21,10 @@ int main()
     std::string lib_ext = SHARED_LIB_EXTENSION;
     std::cout << "Installation path: " << install_path << std::endl;
     std::cout << std::endl;
-    std::cout << "Add the following flags to CFLAGS and/or CXXFLAGS:" << std::endl;
+    std::cout << "Add this to CFLAGS and/or CXXFLAGS:" << std::endl;
     std::cout << "-g -include " << install_path << "/src/Runtime_cpu.h -fpass-plugin=" << install_path << "/lib/libfpchecker_cpu" << SHARED_LIB_EXTENSION << std::endl;
     std::cout << std::endl;
-    std::cout << "If the wrappers are preferred, they are located here:" << std::endl;
+    std::cout << "Wrappers are located here:" << std::endl;
     std::cout << install_path << "/bin/clang-fpchecker" << std::endl;
     std::cout << install_path << "/bin/clang++-fpchecker" << std::endl;
     std::cout << install_path << "/bin/mpicc-fpchecker" << std::endl;
