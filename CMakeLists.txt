@@ -22,22 +22,53 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -O3 -g -std=c++17")
 include(GNUInstallDirs)
 include(CheckLanguage)
 
+###################################
+## Check for python3 and packages #
+###################################
+find_package(Python3 REQUIRED COMPONENTS Interpreter)
+
+if(Python3_FOUND AND Python3_Interpreter_FOUND)
+  message(STATUS "Found Python3: ${Python3_EXECUTABLE}")
+
+  # Define a variable for the package name
+  set(PYTHON_PACKAGE_NAME "matplotlib")
+
+  message(STATUS "Checking for Python package: ${PYTHON_PACKAGE_NAME}")
+
+  # Script to check for the package
+set(PYTHON_CHECK_SCRIPT
+    "import sys\ntry:\n   import ${PYTHON_PACKAGE_NAME}\n   sys.exit(0)\nexcept ImportError:\n   sys.stderr.write('Python package \\'${PYTHON_PACKAGE_NAME}\\' not found.')\n   sys.exit(1)\n"
+)
+
+  # Execute the Python script
+  execute_process(
+    COMMAND ${Python3_EXECUTABLE} -c "${PYTHON_CHECK_SCRIPT}"
+    RESULT_VARIABLE PYTHON_PACKAGE_CHECK_RESULT
+    OUTPUT_VARIABLE PYTHON_PACKAGE_CHECK_OUTPUT
+    ERROR_VARIABLE PYTHON_PACKAGE_CHECK_ERROR
+  )
+
+  # Check the result of the execution
+  if(NOT PYTHON_PACKAGE_CHECK_RESULT EQUAL 0)
+    message(NOTICE "Could not find the Python package '${PYTHON_PACKAGE_NAME}'.\n${PYTHON_PACKAGE_CHECK_ERROR}")
+    message(WARNING "Python3 and matplotlib are required to create reports.")
+  else()
+    message(STATUS "Python package '${PYTHON_PACKAGE_NAME}' found.")
+  endif()
+
+else()
+  message(WARNING "Python3 not found. Python3 and matplotlib are required to create reports.")
+endif()
+
 ###### Enable testing ##########
 enable_testing()
 include(CTest)
-find_package(Python3 COMPONENTS Interpreter)
-if(Python3_Interpreter_FOUND)
+#find_package(Python3 COMPONENTS Interpreter)
+#if(Python3_Interpreter_FOUND)
   add_test(NAME cpu-tests COMMAND Python3::Interpreter -m pytest --tb=no
             WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/tests/cpu_checking)
   set_tests_properties(cpu-tests PROPERTIES ENVIRONMENT "PATH=${CMAKE_INSTALL_PREFIX}/bin:$ENV{PATH}")
-
-#check_language(CUDA)
-#if(CMAKE_CUDA_COMPILER)
-#  add_test(NAME nvcc-tests COMMAND Python3::Interpreter -m pytest --tb=no
-#            WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/tests/parser)
-#  set_tests_properties(nvcc-tests PROPERTIES ENVIRONMENT "PATH=${CMAKE_INSTALL_PREFIX}/bin:$ENV{PATH}")
 #endif()
-endif()
 ###############################
 
 # Set Path pf wrappers in config file
@@ -66,7 +97,6 @@ add_library(fpchecker_cpu SHARED
 	src/Utility.cpp
 	src/driver_cpu.cpp
 )
-
 
 #add_library(fpchecker_plugin SHARED
 #	plugin/instrumentation_plugin.cpp
