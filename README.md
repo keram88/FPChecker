@@ -5,7 +5,7 @@
 
 [![Build Status](https://travis-ci.org/LLNL/FPChecker.svg?branch=master)](https://travis-ci.org/LLNL/FPChecker)
 
-**FPChecker** (Floating-Point Checker) is a dynamic analysis tool to detect floating-point errors in HPC applications. It is the only tool of its class that supports the most common programming languages and models in HPC, including C/C++, MPI, OpenMP, and CUDA. It is designed to be easy to use and easy to integrate into applications. The tool provides a detailed HTML report that helps users identify the exact location of floating-point errors in the software.
+**FPChecker** (Floating-Point Checker) is a dynamic analysis tool to detect floating-point errors in HPC applications. It is the only tool of its class that supports the most common programming languages and models in HPC, including C/C++, MPI, OpenMP. It is designed to be easy to use and easy to integrate into applications. The tool provides a detailed HTML report that helps users identify the exact location of floating-point errors in the software.
 
 ## Documentation
 
@@ -15,7 +15,7 @@ To see how to install and use FPChecker, visit: [https://fpchecker.org/](https:/
 
 - **Easy to use:** it only requires a few changes to the application build script, such as changing the compiler (e.g., clang++) by the FPChecker compiler wrappers (e.g., clang++-fpchecker). It automatically instruments the code at build time.
 - **Accurate Detection:** it accurately detects errors dynamically (when code is executed) for specific inputs; it doesn’t give alarms for unused or invalid inputs. 
-- **Design for HPC:** it supports the most used programming languages and models in HPC: C/C++, MPI, OpenMP, Pthreads, and CUDA.
+- **Design for HPC:** it supports the most used programming languages and models in HPC: C/C++, MPI, OpenMP, Pthreads.
 - **Detailed report:** it provides a detailed report that programmers can use to identify the exact location (file and line number) of floating-point errors in the software.
 
 ## Errors and Warnings

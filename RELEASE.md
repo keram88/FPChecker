@@ -1,3 +1,10 @@
+## Release 0.5
+- Improved histrograms of exponent usage (added to main report). Merged branches.
+- Support for CUDA has been dropped
+- Design of the report changed
+- New tests added
+- Fixed several bugs
+
 ## Release 0.4
 - Added histrograms of exponent usage
 - Fixed several bugs
