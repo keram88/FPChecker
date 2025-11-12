@@ -8,20 +8,20 @@
 # To mount your current directory and run commands:
 #
 # 1. Run interactively to execute multiple commands (preferred):
-#    docker run -it -v $(pwd):/workspace -w /workspace fpchecker /bin/bash
+#    docker run --rm -it -v $(pwd):/workspace -w /workspace fpchecker /bin/bash
 #
 # 2. Mount current directory to /workspace:
-#    docker run -v $(pwd):/workspace -w /workspace fpchecker <command>
+#    docker run --rm -v $(pwd):/workspace -w /workspace fpchecker <command>
 #
 # 3. Mount specific directory:
-#    docker run -v /path/to/your/files:/workspace -w /workspace fpchecker <command>
+#    docker run --rm -v /path/to/your/files:/workspace -w /workspace fpchecker <command>
 #
 # 4. Example - run a specific command on mounted files:
-#    docker run -v $(pwd):/workspace -w /workspace fpchecker ls -la
-#    docker run -v $(pwd):/workspace -w /workspace fpchecker cat file.txt
+#    docker run --rm -v $(pwd):/workspace -w /workspace fpchecker ls -la
+#    docker run --rm -v $(pwd):/workspace -w /workspace fpchecker cat file.txt
 #
 # 5. For Windows PowerShell, use ${PWD} instead of $(pwd):
-#    docker run -v ${PWD}:/workspace -w /workspace fpchecker <command>
+#    docker run --rm -v ${PWD}:/workspace -w /workspace fpchecker <command>
 #
 
 # Use miniconda3 as base image for conda package management
